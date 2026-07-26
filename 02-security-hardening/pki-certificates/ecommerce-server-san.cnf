@@ -1,0 +1,24 @@
+[req]
+default_bits       = 2048
+prompt             = no
+default_md         = sha256
+distinguished_name = dn
+req_extensions     = v3_req
+
+[dn]
+C  = MY
+ST = Kuala Lumpur
+L  = Kuala Lumpur
+O  = AREHI-SECOPS
+OU = IT Security
+CN = shop.danny-sec.internal
+
+[v3_req]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = shop.danny-sec.internal
+DNS.2 = www.shop.danny-sec.internal
+IP.1  = 10.10.40.10
