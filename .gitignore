@@ -4,3 +4,15 @@ Thumbs.db
 *.swp
 *~
 .vscode/
+
+# Terraform - local provider cache and state (never commit state, even
+# from local LocalStack testing - .terraform.lock.hcl IS committed)
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+*.tfvars
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json

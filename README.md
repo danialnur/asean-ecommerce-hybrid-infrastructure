@@ -27,11 +27,13 @@ no tag is forced where it doesn't genuinely apply). See the full-depth certifica
 | **1 — Regional On-Premises Network** | VLANs, trunking, HSRP, EtherChannel, WAN uplinks, port security, SSH | ✅ Complete, verified against live device output |
 | **2 — Dynamic Routing & IPv6** | OSPFv2 Area 0, Router ID/Loopback design, DR/BDR tuning, IPv6 dual-stack | ✅ Complete, verified against live device output |
 | **3 — Security Hardening & IP Services** | NTP, SNMP, DHCP Snooping/DAI, DHCP relay, NAT, ACLs, real PKI (OpenSSL CA), TCP/UDP packet capture | ✅ Complete, verified against live device output |
-| **4 — AWS Cloud Infrastructure** | Multi-AZ VPC, Site-to-Site IPsec VPN, ALB/ASG, RDS, WAF, Terraform | 🚧 Not started |
+| **4 — AWS Cloud Infrastructure** | Multi-AZ VPC, Site-to-Site IPsec VPN, ALB/ASG, RDS, WAF, Terraform | ✅ Complete, written as deployable-quality Terraform (never applied — see below) |
 | **5 — Automation & SecOps** | Netmiko/Python automation, Ansible, centralized SIEM | 🚧 Not started |
 
-This README will be updated as Phases 4–5 land — the "hybrid" (on-prem + cloud) half of the story isn't complete yet,
-and this project intentionally doesn't pretend otherwise.
+This README will be updated as Phase 5 lands. Phase 4's Terraform is intentionally never run against a real AWS
+account — there is no live account behind this project, and every hourly-billed resource in the design (NAT
+Gateways, RDS Multi-AZ + replica, EC2, ALB) would accrue real ongoing cost regardless of traffic. The configuration
+is written to be complete and correct; see `03-aws-cloud-infrastructure/phase4-plan.md` for the full reasoning.
 
 ## What makes this different from a typical lab writeup
 
@@ -65,7 +67,13 @@ and this project intentionally doesn't pretend otherwise.
 ├── firewalls-and-acls/   # (ACL policy — see phase3-plan.md; live configs inline in device files)
 └── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode)
 
-03-aws-cloud-infrastructure/   # Phase 4 — not started, see folder README for planned scope
+03-aws-cloud-infrastructure/
+├── terraform/            # VPC, Security Groups/NACLs, ALB/ASG, RDS, WAF, KMS/S3 logging, Site-to-Site VPN
+├── security-groups/       # Security Group / NACL rule matrix reference
+├── vpn-gateway/           # IPsec Phase 1/2 parameter reference
+├── docs/                  # Phase 4 full-depth certification PDF guide
+└── phase4-plan.md         # Addressing plan, resource inventory, scope decision
+
 04-automation-and-secops/      # Phase 5 — not started, see folder README for planned scope
 ```
 
@@ -75,6 +83,7 @@ and this project intentionally doesn't pretend otherwise.
 - **Phase 1 guide (on-prem basics):** [`01-regional-on-premises-network/docs/phase1-certification-guide.pdf`](01-regional-on-premises-network/docs/phase1-certification-guide.pdf)
 - **Phase 2 guide (OSPF + IPv6):** [`01-regional-on-premises-network/docs/phase2-certification-guide.pdf`](01-regional-on-premises-network/docs/phase2-certification-guide.pdf)
 - **Phase 3 guide (security hardening):** [`02-security-hardening/docs/phase3-certification-guide.pdf`](02-security-hardening/docs/phase3-certification-guide.pdf)
+- **Phase 4 guide (AWS cloud infrastructure):** [`03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf`](03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf)
 - **Packet Tracer build guide:** [`01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md`](01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md)
 
 ## Lab platform
