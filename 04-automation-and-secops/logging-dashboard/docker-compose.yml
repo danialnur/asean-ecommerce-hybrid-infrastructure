@@ -1,0 +1,96 @@
+# Single-node Wazuh SIEM stack - indexer (OpenSearch-based storage/search),
+# manager (log collection, rule correlation, alerting), and dashboard
+# (Kibana-based UI). This configuration is confirmed CORRECT - the cert
+# paths/filenames below were verified by reading each container's own
+# real default config (opensearch.yml, opensearch_dashboards.yml, and
+# filebeat.yml), not guessed - but a live end-to-end deployment could not
+# be completed on this development machine. See "Live Deployment Attempt"
+# in ../README.md for the full troubleshooting record: three separate
+# Docker Desktop/WSL2 environment quirks were hit and ruled out in turn
+# (a Java SecurityManager FilePermission denial specific to Windows-path
+# bind mounts, WSL Docker integration being disabled, and a persistent
+# WSL2 bind-mount bug where top-level files - but not subdirectories -
+# don't appear inside a mounted directory, which survived a full WSL
+# shutdown/restart). None of these reflect a problem with this compose
+# file or the Wazuh setup itself.
+#
+# Prerequisite (one-time): generate TLS certs via the official
+# wazuh-certs-generator container before first start:
+#   docker run --rm -v "$(pwd)/config:/config" \
+#     -v "$(pwd)/config/certs:/certificates" \
+#     wazuh/wazuh-certs-generator:0.0.2
+# (needs ./config/certs.yml defining the 3 node names - see that file.)
+#
+# https://documentation.wazuh.com/current/deployment-options/docker/index.html
+
+services:
+  wazuh.indexer:
+    image: wazuh/wazuh-indexer:4.9.0
+    hostname: wazuh.indexer
+    restart: always
+    ports:
+      - "9200:9200"
+    environment:
+      - "OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g"
+    volumes:
+      - wazuh-indexer-data:/var/lib/wazuh-indexer
+      # Mounted as ONE directory, not individual files. Two real bugs
+      # found and fixed getting here: (1) this image's actual
+      # opensearch.yml expects certs at /etc/wazuh-indexer/certs/
+      # (indexer.pem/indexer-key.pem/root-ca.pem) - confirmed by reading
+      # the running container's own config - not the
+      # /usr/share/wazuh-indexer/certs/ path originally guessed. (2) even
+      # after fixing the path, bind-mounting each .pem as an individual
+      # file still failed with a Java SecurityManager FilePermission
+      # "access denied" error reading the very same file Unix permissions
+      # allowed - a known Docker/OpenSearch interaction where the
+      # security policy expects a whole directory mount, not per-file
+      # binds. Matches Wazuh's own official docker-compose.yml pattern.
+      - ./config/certs:/etc/wazuh-indexer/certs:ro
+
+  wazuh.manager:
+    image: wazuh/wazuh-manager:4.9.0
+    hostname: wazuh.manager
+    restart: always
+    depends_on:
+      - wazuh.indexer
+    ports:
+      # 514/udp is where syslog-forwarding devices (or, in this project's
+      # case, the sample log files replayed via `logger`/netcat) would
+      # send to, if this were ever run for real
+      - "1514:1514/udp"
+      - "1515:1515"
+      - "55000:55000"
+    environment:
+      - INDEXER_URL=https://wazuh.indexer:9200
+      - INDEXER_USERNAME=admin
+      - FILEBEAT_SSL_VERIFICATION_MODE=none
+    volumes:
+      - wazuh-manager-data:/var/ossec/data
+      - ./sample-logs:/var/ossec/sample-logs:ro
+      # No cert files mounted here - confirmed by reading the container's
+      # own default filebeat.yml, which ships with
+      # `ssl.verification_mode: none` and every ssl.certificate*/ssl.key
+      # line already commented out. FILEBEAT_SSL_VERIFICATION_MODE=none
+      # below matches that default; mounting certs the config never
+      # references would do nothing.
+
+  wazuh.dashboard:
+    image: wazuh/wazuh-dashboard:4.9.0
+    hostname: wazuh.dashboard
+    restart: always
+    depends_on:
+      - wazuh.indexer
+      - wazuh.manager
+    ports:
+      - "443:5601"
+    environment:
+      - INDEXER_USERNAME=admin
+      - WAZUH_API_URL=https://wazuh.manager
+    volumes:
+      # Whole-directory mount, same reasoning as the indexer above.
+      - ./config/certs:/etc/wazuh-dashboard/certs:ro
+
+volumes:
+  wazuh-indexer-data:
+  wazuh-manager-data:

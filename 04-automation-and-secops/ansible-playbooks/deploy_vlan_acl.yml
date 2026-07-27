@@ -1,0 +1,117 @@
+---
+# REFERENCE ONLY - never run against a live device. See ../phase5-plan.md
+# for why (Packet Tracer 9.0.0 has no real-NIC bridge). Written to be
+# genuinely correct against real Cisco IOS hardware reachable over SSH,
+# using the official cisco.ios collection (network_cli connection).
+#
+# Demonstrates the declarative/idempotent alternative to the imperative
+# Netmiko scripts in ../python-scripts/ - ios_vlans and ios_acls describe
+# the DESIRED end state; Ansible calculates and applies only the diff
+# needed to reach it, rather than a fixed sequence of CLI commands.
+#
+# Usage (if ever run against reachable devices):
+#   export AREHI_SSH_USER="asean.admin"
+#   export AREHI_SSH_PASSWORD="..."
+#   ansible-playbook deploy_vlan_acl.yml
+
+- name: Ensure the standard VLAN set exists on every switch
+  hosts: switches
+  gather_facts: false
+  tasks:
+    - name: Merge VLAN database
+      cisco.ios.ios_vlans:
+        state: merged
+        config:
+          - vlan_id: 10
+            name: MGMT
+            state: active
+          - vlan_id: 20
+            name: LOGISTICS_SALES
+            state: active
+          - vlan_id: 30
+            name: GUEST_WIFI
+            state: active
+          - vlan_id: 40
+            name: DMZ_SERVERS
+            state: active
+          - vlan_id: 99
+            name: NATIVE
+            state: active
+
+- name: Deploy the GUEST-CONTAINMENT extended ACL
+  hosts: guest_containment_devices
+  gather_facts: false
+  tasks:
+    # `merged` only adds/updates entries that don't already match - it
+    # won't remove any existing ACE not listed here, the same "additive,
+    # not destructive by default" principle Terraform's own resource
+    # model follows.
+    - name: Merge ACL entries
+      cisco.ios.ios_acls:
+        state: merged
+        config:
+          - afi: ipv4
+            acls:
+              - name: GUEST-CONTAINMENT
+                acl_type: extended
+                aces:
+                  - sequence: 10
+                    grant: deny
+                    protocol_options:
+                      ip: true
+                    source:
+                      address: 10.10.30.0
+                      wildcard_bits: 0.0.0.255
+                    destination:
+                      address: 10.10.10.0
+                      wildcard_bits: 0.0.0.255
+                  - sequence: 20
+                    grant: deny
+                    protocol_options:
+                      ip: true
+                    source:
+                      address: 10.10.30.0
+                      wildcard_bits: 0.0.0.255
+                    destination:
+                      address: 10.10.20.0
+                      wildcard_bits: 0.0.0.255
+                  - sequence: 30
+                    grant: deny
+                    protocol_options:
+                      ip: true
+                    source:
+                      address: 10.10.30.0
+                      wildcard_bits: 0.0.0.255
+                    destination:
+                      address: 10.10.40.0
+                      wildcard_bits: 0.0.0.255
+                  - sequence: 40
+                    grant: permit
+                    protocol_options:
+                      ip: true
+                    source:
+                      any: true
+                    destination:
+                      any: true
+
+    # cisco.ios.ios_acls manages the ACL's own entries, not where it's
+    # applied - ios_acl_interfaces is the separate module for that,
+    # deliberately split the same way Terraform's aws_security_group vs
+    # aws_security_group_rule are separate resources. This step is
+    # commented out rather than included unconditionally, because
+    # MY-KL-HQ-CORE applies this ACL differently (Port ACL on
+    # GigabitEthernet1/0/10, per the Phase 3 SVI workaround) than
+    # PH-MNL-ROAS/TH-BKK-ROAS (sub-interface Gi0/0/0.30) - a single
+    # shared task with one interface name would be wrong for at least one
+    # of these 3 hosts. A real playbook would use host_vars per device to
+    # supply the correct interface name rather than hardcoding one here.
+    # - name: Apply ACL to the correct interface (see host_vars per device)
+    #   cisco.ios.ios_acl_interfaces:
+    #     state: merged
+    #     config:
+    #       - name: "{{ guest_containment_interface }}"
+    #         access_groups:
+    #           - afi: ipv4
+    #             acls:
+    #               - name: GUEST-CONTAINMENT
+    #                 direction: in

@@ -28,12 +28,14 @@ no tag is forced where it doesn't genuinely apply). See the full-depth certifica
 | **2 — Dynamic Routing & IPv6** | OSPFv2 Area 0, Router ID/Loopback design, DR/BDR tuning, IPv6 dual-stack | ✅ Complete, verified against live device output |
 | **3 — Security Hardening & IP Services** | NTP, SNMP, DHCP Snooping/DAI, DHCP relay, NAT, ACLs, real PKI (OpenSSL CA), TCP/UDP packet capture | ✅ Complete, verified against live device output |
 | **4 — AWS Cloud Infrastructure** | Multi-AZ VPC, Site-to-Site IPsec VPN, ALB/ASG, RDS, WAF, Terraform | ✅ Complete, written as deployable-quality Terraform (never applied — see below) |
-| **5 — Automation & SecOps** | Netmiko/Python automation, Ansible, centralized SIEM | 🚧 Not started |
+| **5 — Automation & SecOps** | Netmiko/Python automation, Ansible, centralized SIEM | ✅ Complete, written as real-device-ready code (never executed live — see below) |
 
-This README will be updated as Phase 5 lands. Phase 4's Terraform is intentionally never run against a real AWS
-account — there is no live account behind this project, and every hourly-billed resource in the design (NAT
-Gateways, RDS Multi-AZ + replica, EC2, ALB) would accrue real ongoing cost regardless of traffic. The configuration
-is written to be complete and correct; see `03-aws-cloud-infrastructure/phase4-plan.md` for the full reasoning.
+All 5 phases are now complete. Phase 4's Terraform is intentionally never run against a real AWS account — there
+is no live account behind this project, and every hourly-billed resource in the design (NAT Gateways, RDS Multi-AZ
++ replica, EC2, ALB) would accrue real ongoing cost regardless of traffic. The configuration is written to be
+complete and correct; see `03-aws-cloud-infrastructure/phase4-plan.md` for the full reasoning. Phase 5's
+Netmiko/Ansible code is similarly never executed live, for a different reason: Packet Tracer 9.0.0 has no real-NIC
+bridge to a live SSH target (confirmed directly, not assumed — see `04-automation-and-secops/phase5-plan.md`).
 
 ## What makes this different from a typical lab writeup
 
@@ -74,7 +76,12 @@ is written to be complete and correct; see `03-aws-cloud-infrastructure/phase4-p
 ├── docs/                  # Phase 4 full-depth certification PDF guide
 └── phase4-plan.md         # Addressing plan, resource inventory, scope decision
 
-04-automation-and-secops/      # Phase 5 — not started, see folder README for planned scope
+04-automation-and-secops/
+├── python-scripts/        # Netmiko config backup, bulk ACL update, device inventory (this one actually runs)
+├── ansible-playbooks/     # Declarative VLAN + ACL deployment (cisco.ios collection)
+├── logging-dashboard/     # Wazuh SIEM (Docker Compose) + representative sample logs
+├── docs/                  # Phase 5 full-depth certification PDF guide
+└── phase5-plan.md         # Scope decision (incl. the Packet Tracer real-NIC bridge finding), resource inventory
 ```
 
 ## Start here
@@ -84,6 +91,7 @@ is written to be complete and correct; see `03-aws-cloud-infrastructure/phase4-p
 - **Phase 2 guide (OSPF + IPv6):** [`01-regional-on-premises-network/docs/phase2-certification-guide.pdf`](01-regional-on-premises-network/docs/phase2-certification-guide.pdf)
 - **Phase 3 guide (security hardening):** [`02-security-hardening/docs/phase3-certification-guide.pdf`](02-security-hardening/docs/phase3-certification-guide.pdf)
 - **Phase 4 guide (AWS cloud infrastructure):** [`03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf`](03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf)
+- **Phase 5 guide (automation & SecOps):** [`04-automation-and-secops/docs/phase5-certification-guide.pdf`](04-automation-and-secops/docs/phase5-certification-guide.pdf)
 - **Packet Tracer build guide:** [`01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md`](01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md)
 
 ## Lab platform

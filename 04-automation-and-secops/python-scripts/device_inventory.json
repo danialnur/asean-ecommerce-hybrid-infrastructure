@@ -1,0 +1,257 @@
+[
+  {
+    "hostname": "MY-KL-HQ-CORE",
+    "source_file": "01-regional-on-premises-network\\switching\\MY-KL-HQ-CORE.cfg",
+    "vlans": [
+      {
+        "id": 10,
+        "name": "MGMT"
+      },
+      {
+        "id": 20,
+        "name": "LOGISTICS_SALES"
+      },
+      {
+        "id": 30,
+        "name": "GUEST_WIFI"
+      },
+      {
+        "id": 40,
+        "name": "DMZ_SERVERS"
+      },
+      {
+        "id": 99,
+        "name": "NATIVE"
+      }
+    ],
+    "routed_interfaces": [
+      {
+        "name": "Vlan10",
+        "description": "MGMT - Core switch / AP / WLC management",
+        "ip_address": "10.10.10.2",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "Vlan20",
+        "description": "LOGISTICS_SALES - Finance & order-fulfilment staff",
+        "ip_address": "10.10.20.2",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "Vlan30",
+        "description": "GUEST_WIFI - Isolated guest wireless",
+        "ip_address": "10.10.30.2",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "Vlan40",
+        "description": "DMZ_SERVERS - TFTP / SIEM / RADIUS",
+        "ip_address": "10.10.40.2",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet1/0/22",
+        "description": "WAN uplink to TH-BKK-ROAS (OSPF Area 0)",
+        "ip_address": "10.10.254.9",
+        "subnet_mask": "255.255.255.252"
+      },
+      {
+        "name": "GigabitEthernet1/0/23",
+        "description": "WAN uplink to PH-MNL-ROAS (OSPF Area 0)",
+        "ip_address": "10.10.254.5",
+        "subnet_mask": "255.255.255.252"
+      },
+      {
+        "name": "GigabitEthernet1/0/24",
+        "description": "WAN uplink to SG-EDGE-GW (OSPF Area 0)",
+        "ip_address": "10.10.254.1",
+        "subnet_mask": "255.255.255.252"
+      },
+      {
+        "name": "Loopback0",
+        "description": null,
+        "ip_address": "10.255.255.1",
+        "subnet_mask": "255.255.255.255"
+      }
+    ]
+  },
+  {
+    "hostname": "PH-MNL-ACC",
+    "source_file": "01-regional-on-premises-network\\switching\\PH-MNL-ACC.cfg",
+    "vlans": [
+      {
+        "id": 10,
+        "name": "MGMT"
+      },
+      {
+        "id": 20,
+        "name": "LOGISTICS_SALES"
+      },
+      {
+        "id": 30,
+        "name": "GUEST_WIFI"
+      },
+      {
+        "id": 40,
+        "name": "DMZ_SERVERS"
+      },
+      {
+        "id": 99,
+        "name": "NATIVE"
+      }
+    ],
+    "routed_interfaces": [
+      {
+        "name": "Vlan10",
+        "description": "MGMT - switch management, reachable via MY HQ OSPF",
+        "ip_address": "10.10.110.2",
+        "subnet_mask": "255.255.255.0"
+      }
+    ]
+  },
+  {
+    "hostname": "TH-BKK-ACC",
+    "source_file": "01-regional-on-premises-network\\switching\\TH-BKK-ACC.cfg",
+    "vlans": [
+      {
+        "id": 10,
+        "name": "MGMT"
+      },
+      {
+        "id": 20,
+        "name": "LOGISTICS_SALES"
+      },
+      {
+        "id": 30,
+        "name": "GUEST_WIFI"
+      },
+      {
+        "id": 40,
+        "name": "DMZ_SERVERS"
+      },
+      {
+        "id": 99,
+        "name": "NATIVE"
+      }
+    ],
+    "routed_interfaces": [
+      {
+        "name": "Vlan10",
+        "description": "MGMT - switch management, reachable via MY HQ OSPF",
+        "ip_address": "10.10.120.2",
+        "subnet_mask": "255.255.255.0"
+      }
+    ]
+  },
+  {
+    "hostname": "PH-MNL-ROAS",
+    "source_file": "01-regional-on-premises-network\\router-configs\\PH-MNL-ROAS.cfg",
+    "vlans": [],
+    "routed_interfaces": [
+      {
+        "name": "GigabitEthernet0/0/0.10",
+        "description": "MGMT",
+        "ip_address": "10.10.110.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/0.20",
+        "description": "LOGISTICS_SALES - warehouse/barcode/inventory subnet",
+        "ip_address": "10.10.111.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/0.30",
+        "description": "GUEST_WIFI",
+        "ip_address": "10.10.112.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/0.40",
+        "description": "DMZ_SERVERS",
+        "ip_address": "10.10.113.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/1",
+        "description": "WAN link to MY-KL-HQ-CORE Gi1/0/23 (OSPF Area 0)",
+        "ip_address": "10.10.254.6",
+        "subnet_mask": "255.255.255.252"
+      },
+      {
+        "name": "Loopback0",
+        "description": null,
+        "ip_address": "10.255.255.3",
+        "subnet_mask": "255.255.255.255"
+      }
+    ]
+  },
+  {
+    "hostname": "SG-EDGE-GW",
+    "source_file": "01-regional-on-premises-network\\router-configs\\SG-EDGE-GW.cfg",
+    "vlans": [],
+    "routed_interfaces": [
+      {
+        "name": "GigabitEthernet0/0/0",
+        "description": "WAN link to MY-KL-HQ-CORE Gi1/0/24 (OSPF Area 0)",
+        "ip_address": "10.10.254.2",
+        "subnet_mask": "255.255.255.252"
+      },
+      {
+        "name": "GigabitEthernet0/0/1",
+        "description": "Public ISP uplink - IPsec S2S VPN source toward AWS VGW (Phase 4)",
+        "ip_address": "203.0.113.2",
+        "subnet_mask": "255.255.255.248"
+      },
+      {
+        "name": "Loopback0",
+        "description": null,
+        "ip_address": "10.255.255.2",
+        "subnet_mask": "255.255.255.255"
+      }
+    ]
+  },
+  {
+    "hostname": "TH-BKK-ROAS",
+    "source_file": "01-regional-on-premises-network\\router-configs\\TH-BKK-ROAS.cfg",
+    "vlans": [],
+    "routed_interfaces": [
+      {
+        "name": "GigabitEthernet0/0/0.10",
+        "description": "MGMT",
+        "ip_address": "10.10.120.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/0.20",
+        "description": "LOGISTICS_SALES - warehouse/barcode/inventory subnet",
+        "ip_address": "10.10.121.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/0.30",
+        "description": "GUEST_WIFI",
+        "ip_address": "10.10.122.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/0.40",
+        "description": "DMZ_SERVERS",
+        "ip_address": "10.10.123.1",
+        "subnet_mask": "255.255.255.0"
+      },
+      {
+        "name": "GigabitEthernet0/0/1",
+        "description": "WAN link to MY-KL-HQ-CORE Gi1/0/22 (OSPF Area 0)",
+        "ip_address": "10.10.254.10",
+        "subnet_mask": "255.255.255.252"
+      },
+      {
+        "name": "Loopback0",
+        "description": null,
+        "ip_address": "10.255.255.4",
+        "subnet_mask": "255.255.255.255"
+      }
+    ]
+  }
+]

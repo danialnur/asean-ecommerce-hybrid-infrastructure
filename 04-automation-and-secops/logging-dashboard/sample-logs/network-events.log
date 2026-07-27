@@ -1,0 +1,12 @@
+# Representative sample - Cisco IOS %HSRP, %OSPF, and %PORT_SECURITY
+# message formats, using this project's own real device names, VLANs, and
+# interface names from Phases 1-2. Reconstructed for demonstration, not
+# captured live - see ../../phase5-plan.md.
+<189>Jul 26 2026 03:11:40 MY-KL-HQ-CORE: %OSPF-5-ADJCHG: Process 1, Nbr 10.255.255.3 on GigabitEthernet1/0/23 from LOADING to FULL, Loading Done
+<189>Jul 26 2026 03:11:41 MY-KL-HQ-CORE: %OSPF-5-ADJCHG: Process 1, Nbr 10.255.255.4 on GigabitEthernet1/0/22 from LOADING to FULL, Loading Done
+<189>Jul 26 2026 03:11:44 MY-KL-HQ-CORE: %OSPF-5-ADJCHG: Process 1, Nbr 10.255.255.2 on GigabitEthernet1/0/24 from LOADING to FULL, Loading Done
+<187>Jul 26 2026 10:05:02 MY-KL-HQ-CORE: %HSRP-5-STATECHANGE: Vlan30 Grp 30 state Active -> Speak
+<187>Jul 26 2026 10:05:12 MY-KL-HQ-CORE: %HSRP-5-STATECHANGE: Vlan30 Grp 30 state Speak -> Standby
+<187>Jul 26 2026 10:05:22 MY-KL-HQ-CORE: %HSRP-5-STATECHANGE: Vlan30 Grp 30 state Standby -> Active
+<185>Jul 26 2026 15:28:09 PH-MNL-ACC: %PORT_SECURITY-2-PSECURE_VIOLATION: Security Violation occurred, caused by MAC address 000a.4159.2c88 on port GigabitEthernet0/1.
+<185>Jul 26 2026 15:28:09 PH-MNL-ACC: %PM-4-ERR_DISABLE: psecure-violation error detected on Gi0/1, putting Gi0/1 in err-disable state

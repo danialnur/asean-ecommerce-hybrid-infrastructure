@@ -1,0 +1,15 @@
+# Representative sample - illustrates the %SEC-6-IPACCESSLOGP message
+# format Cisco IOS emits for a logged ACL deny match. This project's
+# actual GUEST-CONTAINMENT ACL (01-regional-on-premises-network/switching/
+# MY-KL-HQ-CORE.cfg) does not currently have the `log` keyword appended to
+# its deny lines, so these exact lines were never emitted by a live
+# device - they're reconstructed in the real Cisco syslog format, using
+# this project's own real addressing (GUEST_WIFI 10.10.30.0/24 attempting
+# to reach MGMT 10.10.10.0/24 and DMZ_SERVERS 10.10.40.0/24), to
+# demonstrate what Wazuh would actually ingest and alert on if logging
+# were enabled on this ACL.
+<189>Jul 26 2026 09:14:22 MY-KL-HQ-CORE: %SEC-6-IPACCESSLOGP: list GUEST-CONTAINMENT denied tcp 10.10.30.147(52413) -> 10.10.10.15(22), 1 packet
+<189>Jul 26 2026 09:14:23 MY-KL-HQ-CORE: %SEC-6-IPACCESSLOGP: list GUEST-CONTAINMENT denied tcp 10.10.30.147(52414) -> 10.10.10.15(22), 3 packets
+<189>Jul 26 2026 09:16:05 MY-KL-HQ-CORE: %SEC-6-IPACCESSLOGP: list GUEST-CONTAINMENT denied tcp 10.10.30.88(51022) -> 10.10.40.10(69), 1 packet
+<189>Jul 26 2026 09:22:41 MY-KL-HQ-CORE: %SEC-6-IPACCESSLOGP: list GUEST-CONTAINMENT denied icmp 10.10.30.200 -> 10.10.10.2 (0/0), 1 packet
+<189>Jul 26 2026 09:41:07 MY-KL-HQ-CORE: %SEC-6-IPACCESSLOGP: list GUEST-CONTAINMENT denied tcp 10.10.30.147(52501) -> 10.10.10.15(3389), 1 packet
