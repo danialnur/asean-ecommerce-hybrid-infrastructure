@@ -59,7 +59,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── router-configs/       # WAN/ROAS router configs (SG-EDGE-GW, PH-MNL-ROAS, TH-BKK-ROAS)
 ├── topologies/           # Topology diagram, IPv4/IPv6 addressing plan, Packet Tracer build guide
 ├── docs/                 # Phase 1 & 2 full-depth certification PDF guides
-└── screenshots.docx      # Verification evidence (show command output, topology view)
+└── screenshots.md        # Verification evidence (show command output, topology view)
 
 02-security-hardening/
 ├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes
