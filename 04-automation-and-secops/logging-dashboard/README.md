@@ -64,6 +64,15 @@ Docker Desktop/WSL2 behavior outside this project's control. This is documented 
 left as "should work" — the same treatment given to every other platform limitation in this project (Packet
 Tracer's SNMPv3/spanning-tree/SVI-ACL gaps, LocalStack's Pro-tier service gating).
 
+## ⚠️ Important — `config/certs/` contains real generated keys, lab-only
+
+`config/certs/` (root CA, indexer/manager/dashboard/admin certs and their private keys) was populated by Wazuh's
+own `wazuh-certs-generator` during the live deployment attempt above, and is committed as-is rather than
+scrubbed after the fact — kept for the same transparency reason the failed-attempt writeup exists. **They protect
+nothing real**: the stack never reached a running, network-exposed state, these keys never left this machine
+before being committed, and there is no live Wazuh instance anywhere trusting this CA. Same rule as
+`02-security-hardening/pki-certificates/`: never commit a private key that actually protects something.
+
 ## How the sample logs would be ingested (if ever run for real)
 
 Wazuh's manager listens for syslog on UDP 1514. The sample log files are mounted read-only into the manager
