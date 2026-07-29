@@ -23,6 +23,16 @@ configs in `../switching/` and `../router-configs/` behave as documented — not
 **`MY-KL-HQ-CORE# sh spanning-tree summary`** — rapid-PVST+, PortFast/BPDU Guard enabled
 ![MY-KL-HQ-CORE sh spanning-tree summary](../evidences/05-spanning-tree-summary-my-kl-hq-core.png)
 
+**`PH-MNL-ACC# sh spanning-tree summary`** and **`TH-BKK-ACC# sh spanning-tree summary`** — both show `Root
+bridge for: MGMT LOGISTICS_SALES GUEST_WIFI DMZ_SERVERS NATIVE`, i.e. each access switch is root of its *own*
+domain, not a subordinate of `MY-KL-HQ-CORE`. That's correct, not a misconfiguration: each access switch sits
+behind its site's ROAS *router* (`PH-MNL-ROAS`/`TH-BKK-ROAS`), and a router is a Layer 3 boundary that doesn't
+forward BPDUs - there's no Layer 2 path back to `MY-KL-HQ-CORE`'s spanning-tree domain at all, so each access
+switch is necessarily isolated in its own local instance. What actually matters is confirmed on both: 0 blocking
+ports, all 6 VLANs forwarding cleanly.
+![PH-MNL-ACC sh spanning-tree summary](../evidences/30-spanning-tree-summary-ph-mnl-acc.png)
+![TH-BKK-ACC sh spanning-tree summary](../evidences/31-spanning-tree-summary-th-bkk-acc.png)
+
 ## EtherChannel
 
 `MY-KL-HQ-CORE`'s LACP EtherChannel (`Port-channel1`, `Gi1/0/1-2`) existed from Phase 1 but had no peer to bundle
@@ -84,8 +94,14 @@ state.
 **`PH-MNL-ACC# ping 10.10.120.1`** — 100% success, cross-VLAN via ROAS
 ![Ping to 10.10.120.1](../evidences/16-ping-ph-mnl-acc-to-vlan120.png)
 
-**`PH-MNL-ACC# ping 10.10.110.1`** — 100% success
+**`PH-MNL-ACC# ping 10.10.110.1`** — 100% success. Note this one is really PH-MNL-ACC reaching its own local
+default gateway (PH-MNL-ROAS's MGMT sub-interface) rather than a cross-site test - the genuinely cross-site
+counterpart is below.
 ![Ping to 10.10.110.1](../evidences/17-ping-ph-mnl-acc-to-vlan110.png)
+
+**`TH-BKK-ACC# ping 10.10.110.1`** — 100% success, genuinely cross-site: Bangkok's access switch reaching
+Manila's ROAS router, routed via OSPF through MY-KL-HQ-CORE.
+![Ping from TH-BKK-ACC to PH-MNL-ROAS](../evidences/29-ping-th-bkk-acc-to-ph-mnl-roas.png)
 
 ## OSPF Routing Table
 
