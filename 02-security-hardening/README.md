@@ -12,8 +12,6 @@ Full design rationale, the placeholder services-server addressing, and the ACL p
 
 - [`pki-certificates/`](pki-certificates/) — real OpenSSL-built internal CA, CSR, and signed TLS certificate,
   not a simulated placeholder
-- [`layer2-defense/`](layer2-defense/), [`firewalls-and-acls/`](firewalls-and-acls/) — deliberately empty; the
-  actual configs live inline in the device `.cfg` files, see each folder's `README.md` for why
 - [`threat-simulations/`](threat-simulations/) — TCP vs UDP packet capture evidence, still outstanding (see that
   folder's `README.md`)
 

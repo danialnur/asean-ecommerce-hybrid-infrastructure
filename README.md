@@ -59,11 +59,11 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 └── evidences/            # README.md (verification write-up, auto-renders on GitHub), split into phase-1-basic-connectivity/ and phase-2-dynamic-routing-ipv6/
 
 02-security-hardening/
-├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes
+├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes (DHCP Snooping/DAI,
+│                         # port security, and ACL configs all live inline in Phase 1's switching/router-configs
+│                         # files, not in separate folders here)
 ├── pki-certificates/     # Real OpenSSL CA, CSR, signed certificate + explanation
-├── layer2-defense/       # (DHCP Snooping/DAI — configs live inline in the switching/ files above)
-├── firewalls-and-acls/   # (ACL policy — see phase3-plan.md; live configs inline in device files)
-└── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode)
+└── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode) - still outstanding
 
 03-aws-cloud-infrastructure/
 ├── terraform/            # VPC, Security Groups/NACLs, ALB/ASG, RDS, WAF, KMS/S3 logging, Site-to-Site VPN
