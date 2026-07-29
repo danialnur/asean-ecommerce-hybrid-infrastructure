@@ -58,8 +58,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── switching/            # Access/core/distribution switch configs (MY-KL-HQ-CORE, MY-KL-HQ-DIST, PH-MNL-ACC, TH-BKK-ACC)
 ├── router-configs/       # WAN/ROAS router configs (SG-EDGE-GW, PH-MNL-ROAS, TH-BKK-ROAS)
 ├── topologies/           # Topology diagram, IPv4/IPv6 addressing plan, Packet Tracer build guide
-├── docs/                 # Phase 1 & 2 full-depth certification PDF guides + screenshots.md (verification evidence write-up)
-└── evidences/            # Screenshots referenced by docs/screenshots.md, split into phase-1-basic-connectivity/ and phase-2-dynamic-routing-ipv6/
+└── evidences/            # evidences.md (verification write-up) + README.md, split into phase-1-basic-connectivity/ and phase-2-dynamic-routing-ipv6/ (docs/ with the Phase 1 & 2 certification PDF guides exists locally but is gitignored, not published)
 
 02-security-hardening/
 ├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes
@@ -87,8 +86,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ## Start here
 
 - **Topology & addressing plan:** [`01-regional-on-premises-network/topologies/asean-network-topology.md`](01-regional-on-premises-network/topologies/asean-network-topology.md)
-- **Phase 1 guide (on-prem basics):** [`01-regional-on-premises-network/docs/phase1-certification-guide.pdf`](01-regional-on-premises-network/docs/phase1-certification-guide.pdf)
-- **Phase 2 guide (OSPF + IPv6):** [`01-regional-on-premises-network/docs/phase2-certification-guide.pdf`](01-regional-on-premises-network/docs/phase2-certification-guide.pdf)
+- **Phase 1 & 2 verification evidence:** [`01-regional-on-premises-network/evidences/evidences.md`](01-regional-on-premises-network/evidences/evidences.md)
 - **Phase 3 guide (security hardening):** [`02-security-hardening/docs/phase3-certification-guide.pdf`](02-security-hardening/docs/phase3-certification-guide.pdf)
 - **Phase 4 guide (AWS cloud infrastructure):** [`03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf`](03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf)
 - **Phase 5 guide (automation & SecOps):** [`04-automation-and-secops/docs/phase5-certification-guide.pdf`](04-automation-and-secops/docs/phase5-certification-guide.pdf)

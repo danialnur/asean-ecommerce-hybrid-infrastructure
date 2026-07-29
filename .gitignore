@@ -5,6 +5,9 @@ Thumbs.db
 *~
 .vscode/
 
+# Phase 1/2 certification-guide PDFs - kept locally, not published on GitHub
+01-regional-on-premises-network/docs/
+
 # Terraform - local provider cache and state (never commit state, even
 # from local LocalStack testing - .terraform.lock.hcl IS committed)
 **/.terraform/*
