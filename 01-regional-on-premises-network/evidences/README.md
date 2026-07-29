@@ -16,7 +16,8 @@ Ordered start to finish, from the physical topology through to the last thing ac
 ## Topology Overview
 
 Full Packet Tracer topology view — SG-EDGE-GW (ISR4331) uplinked through MY-KL-HQ-CORE (3650-24PS) to the
-Thailand (ISR4321 ROAS + 2960-24TT access) and Philippines (ISR4321 ROAS + 2960-24TT access) branches.
+Thailand (ISR4321 ROAS + 2960-24TT access) and Philippines (ISR4321 ROAS + 2960-24TT access) branches, with
+MY-KL-HQ-DIST (3650-24PS) hanging off MY-KL-HQ-CORE as its LACP EtherChannel peer.
 
 <p align="center">
   <img src="./phase-1-basic-connectivity/01-topology-overview.png" alt="Topology overview"><br>
