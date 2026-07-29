@@ -53,12 +53,18 @@ exists purely as the WAN-to-cloud on-ramp.
 
 | Hostname                | Role                              | Platform          | Site           |
 |--------------------------|-----------------------------------|--------------------|----------------|
-| `MY-KL-HQ-CORE`     | Core/distribution switch (L3)     | Catalyst 9300      | Kuala Lumpur   |
+| `MY-KL-HQ-CORE`     | Core/distribution switch (L3)     | Catalyst 3650-24PS | Kuala Lumpur   |
+| `MY-KL-HQ-DIST`     | Distribution switch - LACP EtherChannel peer for MY-KL-HQ-CORE (Gi1/0/1-2, Port-channel1) | Catalyst 3650-24PS | Kuala Lumpur |
 | `SG-EDGE-GW`       | WAN edge / cloud on-ramp router   | ISR 4331           | Singapore      |
 | `PH-MNL-ROAS`      | Router-on-a-stick                 | ISR 4321           | Manila         |
-| `PH-MNL-ACC`        | Access switch (L2)                | Catalyst 9200L     | Manila         |
+| `PH-MNL-ACC`        | Access switch (L2)                | Catalyst 2960-24TT | Manila         |
 | `TH-BKK-ROAS`      | Router-on-a-stick                 | ISR 4321           | Bangkok        |
-| `TH-BKK-ACC`        | Access switch (L2)                | Catalyst 9200L     | Bangkok        |
+| `TH-BKK-ACC`        | Access switch (L2)                | Catalyst 2960-24TT | Bangkok        |
+
+`MY-KL-HQ-DIST` isn't part of the routed hub-and-spoke topology above - it exists solely so `MY-KL-HQ-CORE`'s
+LACP EtherChannel (`Port-channel1`) has a real peer to bundle with. Nothing else in this project routes through
+or depends on it, so it's out of scope for the Phase 3 security-hardening pass (no SSH/port-security/ACL
+hardening applied there).
 
 ## IPv4 VLSM plan
 

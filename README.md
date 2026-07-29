@@ -55,7 +55,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 
 ```
 01-regional-on-premises-network/
-├── switching/            # Access/core switch configs (MY-KL-HQ-CORE, PH-MNL-ACC, TH-BKK-ACC)
+├── switching/            # Access/core/distribution switch configs (MY-KL-HQ-CORE, MY-KL-HQ-DIST, PH-MNL-ACC, TH-BKK-ACC)
 ├── router-configs/       # WAN/ROAS router configs (SG-EDGE-GW, PH-MNL-ROAS, TH-BKK-ROAS)
 ├── topologies/           # Topology diagram, IPv4/IPv6 addressing plan, Packet Tracer build guide
 ├── docs/                 # Phase 1 & 2 full-depth certification PDF guides + screenshots.md (verification evidence write-up)
@@ -96,6 +96,6 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 
 ## Lab platform
 
-Built and verified in **Cisco Packet Tracer 9.0.0**, using confirmed device models: Catalyst 3650-24PS (core),
-Catalyst 2960-24TT (access), ISR 4331 (WAN edge), ISR 4321 (router-on-a-stick, ×2). PKI work (Phase 3) uses real
-OpenSSL on the host machine, not a Packet Tracer simulation.
+Built and verified in **Cisco Packet Tracer 9.0.0**, using confirmed device models: Catalyst 3650-24PS (core +
+distribution, ×2), Catalyst 2960-24TT (access), ISR 4331 (WAN edge), ISR 4321 (router-on-a-stick, ×2). PKI work
+(Phase 3) uses real OpenSSL on the host machine, not a Packet Tracer simulation.

@@ -23,6 +23,24 @@ configs in `../switching/` and `../router-configs/` behave as documented — not
 **`MY-KL-HQ-CORE# sh spanning-tree summary`** — rapid-PVST+, PortFast/BPDU Guard enabled
 ![MY-KL-HQ-CORE sh spanning-tree summary](../evidences/05-spanning-tree-summary-my-kl-hq-core.png)
 
+## EtherChannel
+
+`MY-KL-HQ-CORE`'s LACP EtherChannel (`Port-channel1`, `Gi1/0/1-2`) existed from Phase 1 but had no peer to bundle
+with until `MY-KL-HQ-DIST` was added specifically to verify it (see `../topologies/asean-network-topology.md`'s
+device inventory note and `../switching/MY-KL-HQ-DIST.cfg`). Live testing caught a real issue: the first LACP
+negotiation attempt left both member ports stand-alone (`show etherchannel summary` flag `I`, not `P`) despite
+byte-for-byte matching config on both switches. Confirmed this wasn't a config error by temporarily testing
+static `channel-group 1 mode on`, which bundled immediately — then removing and re-adding LACP channel-group
+membership on both switches (`no channel-group 1` / `no channel-protocol lacp` / re-add) reset the LACP state
+machine and brought the bundle up cleanly under real LACP. The screenshots below are from that final, working
+state.
+
+**`MY-KL-HQ-CORE# sh etherchannel summary`** — `Po1(SU)`, both members `(P)`, protocol LACP
+![MY-KL-HQ-CORE etherchannel summary](../evidences/23-etherchannel-summary-my-kl-hq-core.png)
+
+**`MY-KL-HQ-CORE# sh interfaces trunk`** — `Po1` trunking, native VLAN 99, all 5 VLANs allowed
+![MY-KL-HQ-CORE interfaces trunk](../evidences/24-interfaces-trunk-my-kl-hq-core.png)
+
 ## Trunking
 
 **`PH-MNL-ACC# sh interfaces trunk`**

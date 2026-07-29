@@ -76,6 +76,33 @@
     ]
   },
   {
+    "hostname": "MY-KL-HQ-DIST",
+    "source_file": "01-regional-on-premises-network\\switching\\MY-KL-HQ-DIST.cfg",
+    "vlans": [
+      {
+        "id": 10,
+        "name": "MGMT"
+      },
+      {
+        "id": 20,
+        "name": "LOGISTICS_SALES"
+      },
+      {
+        "id": 30,
+        "name": "GUEST_WIFI"
+      },
+      {
+        "id": 40,
+        "name": "DMZ_SERVERS"
+      },
+      {
+        "id": 99,
+        "name": "NATIVE"
+      }
+    ],
+    "routed_interfaces": []
+  },
+  {
     "hostname": "PH-MNL-ACC",
     "source_file": "01-regional-on-premises-network\\switching\\PH-MNL-ACC.cfg",
     "vlans": [
