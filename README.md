@@ -58,8 +58,8 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── switching/            # Access/core switch configs (MY-KL-HQ-CORE, PH-MNL-ACC, TH-BKK-ACC)
 ├── router-configs/       # WAN/ROAS router configs (SG-EDGE-GW, PH-MNL-ROAS, TH-BKK-ROAS)
 ├── topologies/           # Topology diagram, IPv4/IPv6 addressing plan, Packet Tracer build guide
-├── docs/                 # Phase 1 & 2 full-depth certification PDF guides
-└── screenshots.md        # Verification evidence (show command output, topology view)
+├── docs/                 # Phase 1 & 2 full-depth certification PDF guides + screenshots.md (verification evidence write-up)
+└── evidences/            # Screenshots referenced by docs/screenshots.md (show command output, topology view)
 
 02-security-hardening/
 ├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes
@@ -73,7 +73,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── terraform/            # VPC, Security Groups/NACLs, ALB/ASG, RDS, WAF, KMS/S3 logging, Site-to-Site VPN
 ├── security-groups/       # Security Group / NACL rule matrix reference
 ├── vpn-gateway/           # IPsec Phase 1/2 parameter reference
-├── docs/                  # Phase 4 full-depth certification PDF guide
+├── docs/                  # Phase 4 full-depth certification PDF guide + screenshots.md (LocalStack apply/destroy evidence)
 └── phase4-plan.md         # Addressing plan, resource inventory, scope decision
 
 04-automation-and-secops/
