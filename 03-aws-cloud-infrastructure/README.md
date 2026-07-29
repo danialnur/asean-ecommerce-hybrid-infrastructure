@@ -2,7 +2,7 @@
 
 ✅ **Complete** — written as full, deployable-quality Terraform reference code, deliberately never applied against a
 real AWS account (no live account, and every hourly-billed resource here would incur real ongoing cost — see
-`phase4-plan.md` and the certification guide for the full reasoning).
+`phase4-plan.md` for the full reasoning).
 
 ## Scope
 
@@ -21,5 +21,6 @@ real AWS account (no live account, and every hourly-billed resource here would i
   `logging.tf`, `vpn-gateway.tf`, `outputs.tf`
 - `security-groups/README.md` — full Security Group / NACL rule matrix with reasoning
 - `vpn-gateway/README.md` — IPsec Phase 1/2 parameter reference
-- `docs/phase4-certification-guide.pdf` — full-depth, AWS SAA-C03-centered certification study guide
+- `docs/screenshots.md` + `docs/screenshots/` — LocalStack `plan`/`apply`/`destroy` evidence (`docs/` also holds
+  the Phase 4 AWS SAA-C03-centered certification study guide locally, but it's gitignored and not published)
 - `phase4-plan.md` — addressing plan, resource inventory, and the honesty note on why this is never deployed

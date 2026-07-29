@@ -41,15 +41,13 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 
 - **Every device config was verified against live `show run` output, not just written and assumed correct.** The
   process caught real bugs — a missing sub-interface encapsulation that silently broke routing despite the link
-  showing "up," repeated VLAN-naming typos, a missing OSPF command — all documented in the certification guides
-  rather than quietly fixed and forgotten.
+  showing "up," repeated VLAN-naming typos, a missing OSPF command — documented at the time rather than quietly
+  fixed and forgotten (see the certification guides, kept locally per-phase but not published here).
 - **Real PKI, not a simulated placeholder.** `02-security-hardening/pki-certificates/` contains an actual OpenSSL-built
   internal CA, a real CSR with proper SAN extensions, and a signed certificate — with a verified chain of trust.
 - **Platform limitations are documented, not hidden.** Where Packet Tracer's simulated IOS genuinely can't represent
   something real hardware supports (SNMPv3, certain spanning-tree commands, ISR4321's 2-port hardware constraint),
   that's called out explicitly rather than silently worked around.
-- **Three full certification-mapped PDF guides** explain not just *what* was configured but *why*, define every
-  networking-specific term used, and include IP/routing reference tables for every addressing-related objective.
 
 ## Repository structure
 
@@ -63,33 +61,34 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 02-security-hardening/
 ├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes
 ├── pki-certificates/     # Real OpenSSL CA, CSR, signed certificate + explanation
-├── docs/                 # Phase 3 full-depth certification PDF guide
 ├── layer2-defense/       # (DHCP Snooping/DAI — configs live inline in the switching/ files above)
 ├── firewalls-and-acls/   # (ACL policy — see phase3-plan.md; live configs inline in device files)
 └── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode)
+    (docs/ with the Phase 3 certification PDF guide exists locally but is gitignored, not published)
 
 03-aws-cloud-infrastructure/
 ├── terraform/            # VPC, Security Groups/NACLs, ALB/ASG, RDS, WAF, KMS/S3 logging, Site-to-Site VPN
 ├── security-groups/       # Security Group / NACL rule matrix reference
 ├── vpn-gateway/           # IPsec Phase 1/2 parameter reference
-├── docs/                  # Phase 4 full-depth certification PDF guide + screenshots.md (LocalStack apply/destroy evidence)
+├── docs/                  # screenshots.md + screenshots/ (LocalStack apply/destroy evidence) - the Phase 4
+│                           # certification PDF guide also lives here locally but is gitignored, not published
 └── phase4-plan.md         # Addressing plan, resource inventory, scope decision
 
 04-automation-and-secops/
 ├── python-scripts/        # Netmiko config backup, bulk ACL update, device inventory (this one actually runs)
 ├── ansible-playbooks/     # Declarative VLAN + ACL deployment (cisco.ios collection)
 ├── logging-dashboard/     # Wazuh SIEM (Docker Compose) + representative sample logs
-├── docs/                  # Phase 5 full-depth certification PDF guide
 └── phase5-plan.md         # Scope decision (incl. the Packet Tracer real-NIC bridge finding), resource inventory
+    (docs/ with the Phase 5 certification PDF guide exists locally but is gitignored, not published)
 ```
 
 ## Start here
 
 - **Topology & addressing plan:** [`01-regional-on-premises-network/topologies/asean-network-topology.md`](01-regional-on-premises-network/topologies/asean-network-topology.md)
 - **Phase 1 & 2 verification evidence:** [`01-regional-on-premises-network/evidences/`](01-regional-on-premises-network/evidences/)
-- **Phase 3 guide (security hardening):** [`02-security-hardening/docs/phase3-certification-guide.pdf`](02-security-hardening/docs/phase3-certification-guide.pdf)
-- **Phase 4 guide (AWS cloud infrastructure):** [`03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf`](03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf)
-- **Phase 5 guide (automation & SecOps):** [`04-automation-and-secops/docs/phase5-certification-guide.pdf`](04-automation-and-secops/docs/phase5-certification-guide.pdf)
+- **Phase 3 (security hardening):** [`02-security-hardening/phase3-plan.md`](02-security-hardening/phase3-plan.md)
+- **Phase 4 (AWS cloud infrastructure):** [`03-aws-cloud-infrastructure/docs/screenshots.md`](03-aws-cloud-infrastructure/docs/screenshots.md) (LocalStack apply/destroy evidence), [`03-aws-cloud-infrastructure/phase4-plan.md`](03-aws-cloud-infrastructure/phase4-plan.md)
+- **Phase 5 (automation & SecOps):** [`04-automation-and-secops/phase5-plan.md`](04-automation-and-secops/phase5-plan.md)
 - **Packet Tracer build guide:** [`01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md`](01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md)
 
 ## Lab platform

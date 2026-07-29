@@ -5,8 +5,14 @@ Thumbs.db
 *~
 .vscode/
 
-# Phase 1/2 certification-guide PDFs - kept locally, not published on GitHub
+# Certification-guide PDFs - kept locally, not published on GitHub.
+# Phase 1/2's docs/ only ever held the PDFs (screenshots.md moved to evidences/),
+# same for Phase 3/5. Phase 4's docs/ also holds screenshots.md + screenshots/
+# (LocalStack evidence) which DO stay published, so only its PDF is excluded.
 01-regional-on-premises-network/docs/
+02-security-hardening/docs/
+03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf
+04-automation-and-secops/docs/
 
 # Terraform - local provider cache and state (never commit state, even
 # from local LocalStack testing - .terraform.lock.hcl IS committed)

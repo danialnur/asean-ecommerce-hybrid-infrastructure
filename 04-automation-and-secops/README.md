@@ -28,5 +28,5 @@ environment quirks that blocked it.
   `device_inventory.json`), `devices.py`, `requirements.txt`
 - `ansible-playbooks/` — `inventory.ini`, `deploy_vlan_acl.yml`, `ansible.cfg`
 - `logging-dashboard/` — `docker-compose.yml`, `sample-logs/`, `README.md`
-- `docs/phase5-certification-guide.pdf` — full-depth certification study guide
 - `phase5-plan.md` — scope decision (including the PT-Cloud bridge finding), resource inventory, cert mapping
+- (`docs/` with the Phase 5 full-depth certification study guide exists locally but is gitignored, not published)
