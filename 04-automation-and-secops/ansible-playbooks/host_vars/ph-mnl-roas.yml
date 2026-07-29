@@ -1,0 +1,104 @@
+# GUEST-CONTAINMENT ACL entries for ph-mnl-roas, exactly matching the real
+# `ip access-list extended GUEST-CONTAINMENT` block in
+# 01-regional-on-premises-network/router-configs/PH-MNL-ROAS.cfg - kept as an explicit,
+# auditable list per host rather than generated from a shared template,
+# so it can be diffed directly against that .cfg file.
+guest_containment_aces:
+  - sequence: 10
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.10.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 20
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.110.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 30
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.120.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 40
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.20.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 50
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.111.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 60
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.121.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 70
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.40.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 80
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.113.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 90
+    grant: deny
+    protocol_options:
+      ip: true
+    source:
+      address: 10.10.112.0
+      wildcard_bits: 0.0.0.255
+    destination:
+      address: 10.10.123.0
+      wildcard_bits: 0.0.0.255
+  - sequence: 100
+    grant: permit
+    protocol_options:
+      ip: true
+    source:
+      any: true
+    destination:
+      any: true

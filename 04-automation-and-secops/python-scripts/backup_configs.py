@@ -10,6 +10,7 @@ hardware reachable over SSH.
 
 Usage (if ever run against a reachable device):
     export AREHI_SSH_PASSWORD="..."
+    export AREHI_ENABLE_SECRET="..."
     python backup_configs.py
 """
 

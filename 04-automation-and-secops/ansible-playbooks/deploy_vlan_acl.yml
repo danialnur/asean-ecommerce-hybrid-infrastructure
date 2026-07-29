@@ -12,6 +12,7 @@
 # Usage (if ever run against reachable devices):
 #   export AREHI_SSH_USER="asean.admin"
 #   export AREHI_SSH_PASSWORD="..."
+#   export AREHI_ENABLE_SECRET="..."
 #   ansible-playbook deploy_vlan_acl.yml
 
 - name: Ensure the standard VLAN set exists on every switch
@@ -46,6 +47,13 @@
     # won't remove any existing ACE not listed here, the same "additive,
     # not destructive by default" principle Terraform's own resource
     # model follows.
+    #
+    # `aces` comes from host_vars/<hostname>.yml, not a shared literal
+    # block here - each of the 3 devices has its OWN GUEST_WIFI subnet as
+    # the source (MY-KL: 10.10.30.0/24, PH-MNL: 10.10.112.0/24, TH-BKK:
+    # 10.10.122.0/24; see devices.py in ../python-scripts/), so a single
+    # hardcoded `aces` list here would be correct for at most one of the
+    # 3 hosts in this play and silently wrong for the other two.
     - name: Merge ACL entries
       cisco.ios.ios_acls:
         state: merged
@@ -54,45 +62,7 @@
             acls:
               - name: GUEST-CONTAINMENT
                 acl_type: extended
-                aces:
-                  - sequence: 10
-                    grant: deny
-                    protocol_options:
-                      ip: true
-                    source:
-                      address: 10.10.30.0
-                      wildcard_bits: 0.0.0.255
-                    destination:
-                      address: 10.10.10.0
-                      wildcard_bits: 0.0.0.255
-                  - sequence: 20
-                    grant: deny
-                    protocol_options:
-                      ip: true
-                    source:
-                      address: 10.10.30.0
-                      wildcard_bits: 0.0.0.255
-                    destination:
-                      address: 10.10.20.0
-                      wildcard_bits: 0.0.0.255
-                  - sequence: 30
-                    grant: deny
-                    protocol_options:
-                      ip: true
-                    source:
-                      address: 10.10.30.0
-                      wildcard_bits: 0.0.0.255
-                    destination:
-                      address: 10.10.40.0
-                      wildcard_bits: 0.0.0.255
-                  - sequence: 40
-                    grant: permit
-                    protocol_options:
-                      ip: true
-                    source:
-                      any: true
-                    destination:
-                      any: true
+                aces: "{{ guest_containment_aces }}"
 
     # cisco.ios.ios_acls manages the ACL's own entries, not where it's
     # applied - ios_acl_interfaces is the separate module for that,

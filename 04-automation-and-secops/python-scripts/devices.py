@@ -19,6 +19,11 @@ import os
 # hardcoding.
 SSH_USERNAME = os.environ.get("AREHI_SSH_USER", "asean.admin")
 SSH_PASSWORD = os.environ.get("AREHI_SSH_PASSWORD")  # None if unset - scripts must check
+# Privileged-mode (enable) secret - separate from the login password Netmiko
+# authenticates the SSH session with. All 6 devices share the same `enable
+# secret P@ssw0rd` (see the .cfg files), so one env var covers the whole
+# inventory, same as SSH_PASSWORD above.
+ENABLE_SECRET = os.environ.get("AREHI_ENABLE_SECRET")
 
 DEVICES = [
     {
@@ -27,6 +32,7 @@ DEVICES = [
         "device_type": "cisco_ios",
         "role": "core-switch",
         "site": "Kuala Lumpur",
+        "guest_wifi_subnet": "10.10.30.0 0.0.0.255",  # Vlan30, see switching/MY-KL-HQ-CORE.cfg
     },
     {
         "name": "SG-EDGE-GW",
@@ -41,6 +47,7 @@ DEVICES = [
         "device_type": "cisco_ios",
         "role": "roas-router",
         "site": "Manila",
+        "guest_wifi_subnet": "10.10.112.0 0.0.0.255",  # Gi0/0/0.30, see router-configs/PH-MNL-ROAS.cfg
     },
     {
         "name": "PH-MNL-ACC",
@@ -55,6 +62,7 @@ DEVICES = [
         "device_type": "cisco_ios",
         "role": "roas-router",
         "site": "Bangkok",
+        "guest_wifi_subnet": "10.10.122.0 0.0.0.255",  # Gi0/0/0.30, see router-configs/TH-BKK-ROAS.cfg
     },
     {
         "name": "TH-BKK-ACC",
@@ -80,9 +88,16 @@ def connection_params(device: dict) -> dict:
             "AREHI_SSH_PASSWORD is not set. Export it before running any "
             "script in this folder - never hardcode it here."
         )
+    if not ENABLE_SECRET:
+        raise RuntimeError(
+            "AREHI_ENABLE_SECRET is not set. Export it before running any "
+            "script in this folder that calls conn.enable() - never "
+            "hardcode it here."
+        )
     return {
         "device_type": device["device_type"],
         "host": device["host"],
         "username": SSH_USERNAME,
         "password": SSH_PASSWORD,
+        "secret": ENABLE_SECRET,
     }
