@@ -6,8 +6,8 @@ project.
 
 ## Why sample logs, not a live feed
 
-Packet Tracer 9.0.0 has no real-NIC bridge (confirmed directly — see `../phase5-plan.md` and the Phase 5
-certification guide for the full finding), so there is no way for a PT-simulated device to actually forward real
+Packet Tracer 9.0.0 has no real-NIC bridge (confirmed directly — see `../phase5-plan.md` for the full finding),
+so there is no way for a PT-simulated device to actually forward real
 syslog traffic to a SIEM running on the host machine. `sample-logs/` instead contains **representative log
 lines**, reconstructed in genuine Cisco IOS syslog format and using this project's own real device names,
 addressing, and ACL/VLAN/OSPF design — clearly not a live capture, but accurate to what this exact lab *would*

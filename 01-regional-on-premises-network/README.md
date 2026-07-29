@@ -28,5 +28,3 @@ Full addressing plan and device rationale: [`topologies/asean-network-topology.m
 - [`topologies/`](topologies/) — topology diagram, IPv4/IPv6 addressing plan, Packet Tracer build guide
 - [`evidences/`](evidences/) — live `show`-command screenshots proving every config actually works, not just
   written and assumed correct
-
-Phase 1 & 2 certification-guide PDFs exist locally in a gitignored `docs/` folder — not published here.

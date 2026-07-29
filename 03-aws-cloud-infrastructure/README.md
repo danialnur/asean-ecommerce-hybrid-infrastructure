@@ -21,6 +21,5 @@ real AWS account (no live account, and every hourly-billed resource here would i
   `logging.tf`, `vpn-gateway.tf`, `outputs.tf`
 - `security-groups/README.md` — full Security Group / NACL rule matrix with reasoning
 - `vpn-gateway/README.md` — IPsec Phase 1/2 parameter reference
-- `docs/screenshots.md` + `docs/screenshots/` — LocalStack `plan`/`apply`/`destroy` evidence (`docs/` also holds
-  the Phase 4 AWS SAA-C03-centered certification study guide locally, but it's gitignored and not published)
+- `docs/screenshots.md` + `docs/screenshots/` — LocalStack `plan`/`apply`/`destroy` evidence
 - `phase4-plan.md` — addressing plan, resource inventory, and the honesty note on why this is never deployed

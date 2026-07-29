@@ -18,7 +18,7 @@ Malaysia · CompTIA Security+ Certified
 - **AWS Certified Solutions Architect – Associate (SAA-C03)**
 
 Every configuration objective across the project is explicitly tagged against these three (and only these three —
-no tag is forced where it doesn't genuinely apply). See the full-depth certification guides linked below.
+no tag is forced where it doesn't genuinely apply).
 
 ## Project status
 
@@ -42,7 +42,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 - **Every device config was verified against live `show run` output, not just written and assumed correct.** The
   process caught real bugs — a missing sub-interface encapsulation that silently broke routing despite the link
   showing "up," repeated VLAN-naming typos, a missing OSPF command — documented at the time rather than quietly
-  fixed and forgotten (see the certification guides, kept locally per-phase but not published here).
+  fixed and forgotten.
 - **Real PKI, not a simulated placeholder.** `02-security-hardening/pki-certificates/` contains an actual OpenSSL-built
   internal CA, a real CSR with proper SAN extensions, and a signed certificate — with a verified chain of trust.
 - **Platform limitations are documented, not hidden.** Where Packet Tracer's simulated IOS genuinely can't represent
@@ -56,7 +56,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── switching/            # Access/core/distribution switch configs (MY-KL-HQ-CORE, MY-KL-HQ-DIST, PH-MNL-ACC, TH-BKK-ACC)
 ├── router-configs/       # WAN/ROAS router configs (SG-EDGE-GW, PH-MNL-ROAS, TH-BKK-ROAS)
 ├── topologies/           # Topology diagram, IPv4/IPv6 addressing plan, Packet Tracer build guide
-└── evidences/            # README.md (verification write-up, auto-renders on GitHub), split into phase-1-basic-connectivity/ and phase-2-dynamic-routing-ipv6/ (docs/ with the Phase 1 & 2 certification PDF guides exists locally but is gitignored, not published)
+└── evidences/            # README.md (verification write-up, auto-renders on GitHub), split into phase-1-basic-connectivity/ and phase-2-dynamic-routing-ipv6/
 
 02-security-hardening/
 ├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes
@@ -64,14 +64,12 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── layer2-defense/       # (DHCP Snooping/DAI — configs live inline in the switching/ files above)
 ├── firewalls-and-acls/   # (ACL policy — see phase3-plan.md; live configs inline in device files)
 └── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode)
-    (docs/ with the Phase 3 certification PDF guide exists locally but is gitignored, not published)
 
 03-aws-cloud-infrastructure/
 ├── terraform/            # VPC, Security Groups/NACLs, ALB/ASG, RDS, WAF, KMS/S3 logging, Site-to-Site VPN
 ├── security-groups/       # Security Group / NACL rule matrix reference
 ├── vpn-gateway/           # IPsec Phase 1/2 parameter reference
-├── docs/                  # screenshots.md + screenshots/ (LocalStack apply/destroy evidence) - the Phase 4
-│                           # certification PDF guide also lives here locally but is gitignored, not published
+├── docs/                  # screenshots.md + screenshots/ (LocalStack apply/destroy evidence)
 └── phase4-plan.md         # Addressing plan, resource inventory, scope decision
 
 04-automation-and-secops/
@@ -79,7 +77,6 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── ansible-playbooks/     # Declarative VLAN + ACL deployment (cisco.ios collection)
 ├── logging-dashboard/     # Wazuh SIEM (Docker Compose) + representative sample logs
 └── phase5-plan.md         # Scope decision (incl. the Packet Tracer real-NIC bridge finding), resource inventory
-    (docs/ with the Phase 5 certification PDF guide exists locally but is gitignored, not published)
 ```
 
 ## Start here
