@@ -75,7 +75,8 @@ addressing plan stays intact.
 4. **`crypto key generate rsa general-keys modulus 2048`** prompts interactively on real
    IOS for confirmation in some cases; in Packet Tracer it should apply
    directly. If SSH still won't come up afterward, double check `ip domain-name`
-   is set (it is, in all six configs) since RSA key generation needs it.
+   is set (it is, in all seven configs, including `MY-KL-HQ-DIST.cfg`) since
+   RSA key generation needs it.
 5. **LACP EtherChannel can get stuck stand-alone even with correct config on
    both ends — confirmed on `MY-KL-HQ-CORE`↔`MY-KL-HQ-DIST`.** `show
    etherchannel summary` showing `Po1(SD)`/flag `I` (not `P`) on both member
@@ -137,3 +138,32 @@ This is Phase 1 output only — no OSPF exists yet, so:
 
 Once you've got this much pinging correctly end-to-end (WAN links up, no
 cross-site LAN reachability), you're in the right state to start Phase 2.
+
+## 6. What should work after Phase 2 — the fully-built network
+
+Once OSPFv2 Area 0 is running and IPv6 is added:
+
+**Should work:**
+- OSPF neighbors reach `FULL` state on every WAN link (`show ip ospf neigh`
+  on `MY-KL-HQ-CORE`, `SG-EDGE-GW`, `PH-MNL-ROAS`, `TH-BKK-ROAS`) — `MY-KL-HQ-CORE`
+  should show 3 neighbors, the other three should each show exactly 1
+- Cross-site IPv4 reachability that didn't work in Phase 1 now does — any
+  Manila/Bangkok LAN VLAN can reach Malaysia HQ, Singapore, and each other
+- IPv6 addressing (SLAAC/EUI-64) is present on every routed interface across
+  all 4 OSPF-speaking devices (`show ipv6 int brief`)
+- Cross-site **IPv6** reachability also works, but **not via OSPFv3** —
+  see item 6 in section 3 above. It's static routes instead:
+  `MY-KL-HQ-CORE` gets one summarized `/48` route per remote site, each
+  spoke gets a single default route back to the hub. Full routes and
+  rationale in `asean-network-topology.md`'s "Phase 2 — IPv6 routing plan".
+- `MY-KL-HQ-CORE`'s LACP EtherChannel to `MY-KL-HQ-DIST` bundles cleanly
+  (`show etherchannel summary` → `Po1(SU)`, both members `(P)`) — if it
+  doesn't on the first try, see item 5 in section 3 above before assuming
+  your config is wrong.
+
+**Still won't work (out of scope for this project):** the SG-to-AWS IPsec
+tunnel (Phase 4 Terraform, never actually applied against real AWS — see
+`../../03-aws-cloud-infrastructure/phase4-plan.md`) and WLC/wireless.
+
+For the actual verification screenshots at every step above, see
+`../evidences/README.md` — it's ordered to match this same build sequence.
