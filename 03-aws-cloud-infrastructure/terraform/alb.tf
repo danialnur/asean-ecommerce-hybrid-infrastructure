@@ -55,14 +55,9 @@ resource "aws_lb_target_group" "app" {
 }
 
 # HTTPS listener - the certificate ARN would reference an ACM-issued
-# cert in a real deployment. Referencing it as a variable rather than
-# hardcoding, since no real ACM certificate exists for this project.
-variable "acm_certificate_arn" {
-  description = "ACM certificate ARN for the ALB's HTTPS listener - placeholder, no real cert issued for this project"
-  type        = string
-  default     = "arn:aws:acm:ap-southeast-1:000000000000:certificate/PLACEHOLDER-NEVER-DEPLOYED"
-}
-
+# cert in a real deployment. Referencing it as a variable (declared in
+# variables.tf, same as every other input) rather than hardcoding, since
+# no real ACM certificate exists for this project.
 resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.main.arn
   port              = 443
@@ -120,7 +115,7 @@ resource "aws_iam_role_policy" "app_read_db_secret" {
     Statement = [{
       Effect   = "Allow"
       Action   = ["secretsmanager:GetSecretValue"]
-      Resource = [aws_secretsmanager_secret.db_credentials.arn]
+      Resource = [aws_db_instance.primary.master_user_secret[0].secret_arn]
     }]
   })
 }
@@ -163,7 +158,7 @@ resource "aws_launch_template" "app" {
   # directly in user data.
   user_data = base64encode(<<-EOF
     #!/bin/bash
-    echo "DB_SECRET_ARN=${aws_secretsmanager_secret.db_credentials.arn}" >> /etc/environment
+    echo "DB_SECRET_ARN=${aws_db_instance.primary.master_user_secret[0].secret_arn}" >> /etc/environment
     # Real deployment: pull and start the application container here
   EOF
   )

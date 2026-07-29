@@ -90,6 +90,12 @@ variable "db_master_username" {
   default = "arehi_admin"
 }
 
+variable "acm_certificate_arn" {
+  description = "ACM certificate ARN for the ALB's HTTPS listener - placeholder, no real cert issued for this project"
+  type        = string
+  default     = "arn:aws:acm:ap-southeast-1:000000000000:certificate/PLACEHOLDER-NEVER-DEPLOYED"
+}
+
 variable "asg_instance_type" {
   type    = string
   default = "t3.micro"

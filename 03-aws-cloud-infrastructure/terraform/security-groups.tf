@@ -52,7 +52,7 @@ resource "aws_security_group_rule" "alb_egress_to_app" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.alb.id
   source_security_group_id = aws_security_group.app.id
-  description               = "Forward to the app tier only"
+  description              = "Forward to the app tier only"
 }
 
 # -------------------------------------------------------------
@@ -76,7 +76,7 @@ resource "aws_security_group_rule" "alb_to_app_ingress" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.app.id
   source_security_group_id = aws_security_group.alb.id
-  description               = "App traffic from the ALB only"
+  description              = "App traffic from the ALB only"
 }
 
 resource "aws_security_group_rule" "app_egress_internet" {
@@ -96,7 +96,7 @@ resource "aws_security_group_rule" "app_to_db_egress" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.app.id
   source_security_group_id = aws_security_group.db.id
-  description               = "Postgres to the DB tier only"
+  description              = "Postgres to the DB tier only"
 }
 
 # -------------------------------------------------------------
@@ -122,7 +122,7 @@ resource "aws_security_group_rule" "db_ingress_from_app" {
   protocol                 = "tcp"
   security_group_id        = aws_security_group.db.id
   source_security_group_id = aws_security_group.app.id
-  description               = "Postgres from the app tier only"
+  description              = "Postgres from the app tier only"
 }
 
 # =============================================================
@@ -221,6 +221,15 @@ resource "aws_network_acl" "db" {
   }
   egress {
     rule_no    = 100
+    protocol   = "tcp"
+    action     = "allow"
+    cidr_block = var.vpc_cidr
+    from_port  = 5432
+    to_port    = 5432 # Multi-AZ primary -> standby/replica replication traffic - NACLs are stateless,
+    # so this needs its own explicit egress rule even though ingress rule 100 already allows 5432 inbound.
+  }
+  egress {
+    rule_no    = 110
     protocol   = "tcp"
     action     = "allow"
     cidr_block = var.vpc_cidr

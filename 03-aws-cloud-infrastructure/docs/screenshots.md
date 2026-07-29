@@ -6,6 +6,15 @@ in `../terraform/` against real AWS. LocalStack still exercises the actual Terra
 API calls, so this confirms the configuration is mechanically correct, not just written and assumed correct.
 (Converted from the original `screenshots.docx` so it renders directly on GitHub instead of requiring a download.)
 
+**Note on the RDS credentials screenshots below:** this apply cycle predates a later fix to `rds.tf`. At the time
+of this run, the master password was generated via `random_password` and written into a manually-created
+`aws_secretsmanager_secret` (`arehi-secops/rds/master-credentials`, visible in screenshots 2 and 3 below) — which
+meant the plaintext password still landed in Terraform state despite Secrets Manager holding a copy. `rds.tf` now
+uses `manage_master_user_password = true` instead, so RDS generates and owns the secret itself and Terraform never
+sees the plaintext at all. The secret name/ARN shown below no longer matches current code for that reason; the
+screenshots are kept as evidence that the Secrets Manager + RDS apply flow works end-to-end, not as a description
+of the current credential-handling design.
+
 ## Plan & Apply
 
 **`terraform plan`** — 68 resources to add, full output plan (VPC, subnets, ALB, RDS, WAF, KMS, VPN, Secrets Manager)

@@ -68,7 +68,7 @@ resource "aws_vpn_connection" "main" {
 # on-prem CIDR - the counterpart to the ip route statements already
 # configured on SG-EDGE-GW pointing back at this VPC
 resource "aws_vpn_connection_route" "on_prem" {
-  vpn_connection_id     = aws_vpn_connection.main.id
+  vpn_connection_id      = aws_vpn_connection.main.id
   destination_cidr_block = var.on_prem_cidr
 }
 

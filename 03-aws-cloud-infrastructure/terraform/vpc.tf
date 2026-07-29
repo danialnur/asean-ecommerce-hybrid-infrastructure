@@ -114,8 +114,8 @@ resource "aws_route_table" "app" {
   # app tier reach the ASEAN on-prem sites over the Site-to-Site VPN.
   # The VGW resource itself lives in vpn-gateway.tf.
   route {
-    cidr_block  = var.on_prem_cidr
-    gateway_id  = aws_vpn_gateway.main.id
+    cidr_block = var.on_prem_cidr
+    gateway_id = aws_vpn_gateway.main.id
   }
 
   tags = {

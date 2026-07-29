@@ -40,8 +40,8 @@ output "rds_read_replica_endpoint" {
 }
 
 output "db_credentials_secret_arn" {
-  description = "Secrets Manager ARN holding the RDS master credentials"
-  value       = aws_secretsmanager_secret.db_credentials.arn
+  description = "Secrets Manager ARN holding the RDS master credentials (RDS-managed, via manage_master_user_password)"
+  value       = aws_db_instance.primary.master_user_secret[0].secret_arn
 }
 
 output "audit_logs_bucket" {
