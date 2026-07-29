@@ -95,6 +95,13 @@ state.
 **`TH-BKK-ROAS# sh ip route ospf`**
 ![TH-BKK-ROAS OSPF routes](../evidences/19-ip-route-ospf-th-bkk-roas.png)
 
+**`MY-KL-HQ-CORE# sh ip route ospf`** — the hub's own view, showing OSPF routes to both branches (Manila
+`10.10.110.0–113.0`, Bangkok `10.10.120.0–123.0`) simultaneously, unlike the branch-side views above which only
+see routes back toward HQ and each other. (The `26 subnets` in the header reflects every `10.0.0.0/8` subnet
+known to the full routing table, not just the 11 OSPF-learned routes filtered and listed below — a normal IOS
+quirk, not a truncated capture.)
+![MY-KL-HQ-CORE OSPF routes](../evidences/27-ip-route-ospf-my-kl-hq-core.png)
+
 ## IPv6 Dual-Stack
 
 **`PH-MNL-ROAS# sh ipv6 int brief`**
@@ -102,6 +109,15 @@ state.
 
 **`TH-BKK-ROAS# sh ipv6 int brief`**
 ![TH-BKK-ROAS IPv6 interfaces](../evidences/21-ipv6-int-brief-th-bkk-roas.png)
+
+**`MY-KL-HQ-CORE# sh ipv6 int brief`** — captured in two parts, output paginated past `--More--` at `Gi1/0/21`.
+No `Vlan99` entry is expected — VLAN 99 is native-only and was never given its own SVI, consistent with the HSRP
+screenshot above (only VLANs 10/20/30/40 have HSRP groups).
+![MY-KL-HQ-CORE IPv6 interfaces, part 1](../evidences/25-ipv6-int-brief-my-kl-hq-core-part1.png)
+![MY-KL-HQ-CORE IPv6 interfaces, part 2](../evidences/26-ipv6-int-brief-my-kl-hq-core-part2.png)
+
+**`SG-EDGE-GW# sh ipv6 int brief`**
+![SG-EDGE-GW IPv6 interfaces](../evidences/28-ipv6-int-brief-sg-edge-gw.png)
 
 ## Topology Overview
 
