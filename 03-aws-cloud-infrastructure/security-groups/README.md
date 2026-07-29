@@ -42,7 +42,8 @@ Stateless means: return traffic is NOT automatically permitted. Every NACL below
 | `app-nacl` | Egress | 100 | all | `0.0.0.0/0` | Covers both DB-tier requests and NAT Gateway-bound internet traffic |
 | `db-nacl` | Ingress | 100 | 5432 | VPC CIDR | Postgres traffic from within the VPC only |
 | `db-nacl` | Ingress | 110 | 1024–65535 | VPC CIDR | Ephemeral return traffic — scoped to the VPC, not the internet, since the DB tier never talks to the internet |
-| `db-nacl` | Egress | 100 | 1024–65535 | VPC CIDR | DB tier only ever answers back within the VPC — no `0.0.0.0/0` egress rule exists anywhere in this NACL |
+| `db-nacl` | Egress | 100 | 5432 | VPC CIDR | Multi-AZ primary → standby/replica replication traffic — NACLs are stateless, so this needs its own explicit egress rule even though ingress rule 100 already allows 5432 inbound |
+| `db-nacl` | Egress | 110 | 1024–65535 | VPC CIDR | DB tier only ever answers back within the VPC — no `0.0.0.0/0` egress rule exists anywhere in this NACL |
 
 **Why NACLs can't fully replace Security Groups here:** a NACL's `cidr_block` can't reference another AWS resource the way a Security Group's `source_security_group_id` can. That's the core exam-testable reason both layers are used together — NACLs give a coarse, stateless, subnet-wide backstop; Security Groups give the precise, stateful, per-tier trust boundary.
 
