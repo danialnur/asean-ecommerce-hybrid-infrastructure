@@ -135,6 +135,45 @@ screenshot above (only VLANs 10/20/30/40 have HSRP groups).
 **`SG-EDGE-GW# sh ipv6 int brief`**
 ![SG-EDGE-GW IPv6 interfaces](../evidences/28-ipv6-int-brief-sg-edge-gw.png)
 
+## IPv6 Cross-Site Routing
+
+The screenshots above only prove IPv6 *addressing* exists on every device — none of it proves IPv6 can actually
+*route* between sites. Closing that gap turned into a real finding.
+
+**OSPFv3 was configured and live-tested first**, mirroring the existing OSPFv2 design exactly: same router-IDs
+(`10.255.255.1-4`), same area 0, `ipv6 unicast-routing` confirmed present on every device. It never worked.
+`show ipv6 ospf interface brief` showed every interface correctly registered under area 0 (config confirmed
+correct multiple ways: `show ipv6 protocols`, per-interface state, a full interface bounce, and a full removal
+and rebuild of the OSPFv3 process) — yet `Nbrs F/C` stayed `0/0` everywhere, including the simplest possible
+case: a single directly-connected pair (`MY-KL-HQ-CORE` ↔ `SG-EDGE-GW`) with a freshly rebuilt process on both
+ends. OSPFv2 forms adjacencies perfectly on these exact same physical links. This is a confirmed Packet Tracer
+9.0.0 OSPFv3 simulation limitation, not a configuration error — joining the other confirmed platform gaps this
+project has documented (SNMPv3, spanning-tree extend/loopguard, the SVI `ip access-group` bug, no real-NIC
+bridge, and `show lacp`/`passive-interface` command-parsing gaps found earlier in this same evidence pass).
+
+**Static routes replaced it**, mirroring a pattern this project's own IPv4 design already used (see the "Phase 1
+static default route" comments in `PH-MNL-ROAS.cfg`/`TH-BKK-ROAS.cfg`'s OSPF sections, from before OSPFv2 was
+proven working). `MY-KL-HQ-CORE` is the hub, so it only needs one summarized route per remote site — every site's
+4 VLANs share a single `/48`. Each spoke (`SG-EDGE-GW`, `PH-MNL-ROAS`, `TH-BKK-ROAS`) just needs a single default
+route back to the hub, its only way out. See the matching `ipv6 route` comments in each device's `.cfg` file.
+
+**`MY-KL-HQ-CORE# sh ipv6 route`** — two static routes, one summarized `/48` per remote site
+![MY-KL-HQ-CORE IPv6 routing table](../evidences/32-ipv6-route-my-kl-hq-core.png)
+
+**`SG-EDGE-GW# sh ipv6 route`** — single default route back to the hub
+![SG-EDGE-GW IPv6 routing table](../evidences/33-ipv6-route-sg-edge-gw.png)
+
+**`PH-MNL-ROAS# sh ipv6 route`** — single default route back to the hub
+![PH-MNL-ROAS IPv6 routing table](../evidences/34-ipv6-route-ph-mnl-roas.png)
+
+**`TH-BKK-ROAS# sh ipv6 route`** — single default route back to the hub
+![TH-BKK-ROAS IPv6 routing table](../evidences/35-ipv6-route-th-bkk-roas.png)
+
+**`PH-MNL-ROAS# ping 2001:DB8:4:10:250:FFF:FEC1:DD01`** — genuinely cross-site (Manila to Bangkok's MGMT
+address), 100% success. This is the real end-to-end proof: IPv6 dual-stack now means addressing *and* routing,
+not just addressing.
+![Cross-site IPv6 ping, PH-MNL-ROAS to TH-BKK-ROAS](../evidences/36-ping-ipv6-ph-mnl-roas-to-th-bkk-roas.png)
+
 ## Topology Overview
 
 Full Packet Tracer topology view — SG-EDGE-GW (ISR4331) uplinked through MY-KL-HQ-CORE (3650-24PS) to the
