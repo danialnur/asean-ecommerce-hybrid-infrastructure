@@ -146,6 +146,34 @@ Every routed interface additionally gets its automatic **link-local** address (`
 EUI-64 from the interface MAC) regardless of the GUA assigned — link-local is what OSPFv3 neighbor relationships
 actually form over, not the global address.
 
+## Phase 2 — IPv6 routing plan
+
+Static routes, not OSPFv3. OSPFv3 was configured and live-tested first, mirroring the OSPFv2 design exactly
+(same router-IDs, area 0, per-interface enablement, `ipv6 unicast-routing` on every device) — it never formed a
+single adjacency, on any link, on any device, despite config confirmed correct multiple independent ways
+(`show ipv6 protocols`, `show ipv6 ospf interface brief`, a full interface bounce, and a full process rebuild on
+the simplest possible isolated pair). OSPFv2 works perfectly on the exact same physical links, so this is a
+confirmed Packet Tracer 9.0.0 OSPFv3 simulation limitation, not a configuration error — see
+`../evidences/README.md`'s "IPv6 Cross-Site Routing" section for the full troubleshooting record and
+verification screenshots.
+
+`MY-KL-HQ-CORE` is the hub, directly connected to every other routing device, so it only needs one summarized
+route per remote site (each site's 4 VLANs share a single `/48`, from the addressing plan above). Each spoke has
+only one way out — back through the hub — so a single default route covers it, mirroring this project's own
+IPv4 precedent (`PH-MNL-ROAS.cfg`/`TH-BKK-ROAS.cfg`'s "Phase 1 static default route", used before OSPFv2 was
+proven working).
+
+| Device | Static route(s) | Next hop |
+|---|---|---|
+| `MY-KL-HQ-CORE` | `2001:db8:3::/48` (Manila) | `2001:db8:ff::3` (`PH-MNL-ROAS`) |
+| `MY-KL-HQ-CORE` | `2001:db8:4::/48` (Bangkok) | `2001:db8:ff::5` (`TH-BKK-ROAS`) |
+| `SG-EDGE-GW` | `::/0` | `2001:db8:ff::0` (`MY-KL-HQ-CORE`) |
+| `PH-MNL-ROAS` | `::/0` | `2001:db8:ff::2` (`MY-KL-HQ-CORE`) |
+| `TH-BKK-ROAS` | `::/0` | `2001:db8:ff::4` (`MY-KL-HQ-CORE`) |
+
+Verified end-to-end with a real cross-site IPv6 ping (`PH-MNL-ROAS` → `TH-BKK-ROAS`'s MGMT address), not just
+`show ipv6 route` output.
+
 ## Phase 2 — OSPF Router ID & Loopback plan
 
 Router IDs are set explicitly rather than left to auto-election (which would otherwise pick the highest IP on any

@@ -7,14 +7,16 @@ verifying what should (and shouldn't yet) work.
 ## 1. Device picks
 
 Confirmed models actually used to build and verify this lab (Packet Tracer
-9.0.0). The `.cfg` file headers intentionally still list an aspirational
-"real deployment" platform (e.g. Catalyst 9300) as the design target for
-a real enterprise rollout — the table below is what this specific lab was
-actually built and tested on:
+9.0.0). The `.cfg` file "Platform:" header comments match these exactly —
+an earlier draft of this guide claimed the headers were left "aspirational"
+(e.g. Catalyst 9300 as a real-deployment target), but that was reconciled
+away: every header now states the real PT model below, confirmed directly
+against the live lab rather than assumed.
 
 | Config file                | Role                          | Confirmed PT model         |
 |-----------------------------|--------------------------------|------------------------------|
 | `MY-KL-HQ-CORE.cfg`    | Layer 3 switch (multilayer)   | Catalyst **3650-24PS**        |
+| `MY-KL-HQ-DIST.cfg`    | Layer 2 distribution switch — LACP EtherChannel peer for `MY-KL-HQ-CORE` (added later, see item 5 below) | Catalyst **3650-24PS** |
 | `PH-MNL-ACC.cfg`       | Layer 2 access switch         | Catalyst **2960-24TT**        |
 | `TH-BKK-ACC.cfg`       | Layer 2 access switch         | Catalyst **2960-24TT**        |
 | `SG-EDGE-GW.cfg`      | WAN edge router               | **ISR 4331**                   |
@@ -27,10 +29,18 @@ matches the docs.
 
 ## 2. Wiring — match the diagram in `asean-network-topology.md`
 
-Build the six devices and connect them per the ASCII diagram: MY core switch
-in the middle, one link each to SG edge router, PH ROAS router, and TH ROAS
-router; each ROAS router connects down to its site's access switch via a
-**single** trunk link (not EtherChannel — see item 1 below for why).
+Build the six original devices and connect them per the ASCII diagram: MY
+core switch in the middle, one link each to SG edge router, PH ROAS router,
+and TH ROAS router; each ROAS router connects down to its site's access
+switch via a **single** trunk link (not EtherChannel — see item 1 below for
+why).
+
+A seventh device, `MY-KL-HQ-DIST`, gets added later purely to give
+`MY-KL-HQ-CORE`'s `Port-channel1` (configured from the start, but unverified
+until a peer existed) something real to bundle with — two links,
+`Gi1/0/1`↔`Gi1/0/1` and `Gi1/0/2`↔`Gi1/0/2`, both carrying the same trunk/LACP
+config. It isn't part of the routed topology and isn't referenced anywhere
+else in the diagram; see item 5 below for a real gotcha hit wiring this up.
 
 Packet Tracer assigns interface names per the exact model you pick, which
 will **not** always match the `GigabitEthernet1/0/22` / `GigabitEthernet0/0/1`
@@ -66,6 +76,29 @@ addressing plan stays intact.
    IOS for confirmation in some cases; in Packet Tracer it should apply
    directly. If SSH still won't come up afterward, double check `ip domain-name`
    is set (it is, in all six configs) since RSA key generation needs it.
+5. **LACP EtherChannel can get stuck stand-alone even with correct config on
+   both ends — confirmed on `MY-KL-HQ-CORE`↔`MY-KL-HQ-DIST`.** `show
+   etherchannel summary` showing `Po1(SD)`/flag `I` (not `P`) on both member
+   ports, despite byte-for-byte matching `channel-group 1 mode active` on
+   both switches, isn't necessarily a config mistake — it happened here even
+   after a plain `shutdown`/`no shutdown` interface bounce. What fixed it:
+   fully removing and re-adding channel-group membership on **both**
+   switches (`no channel-group 1` / `no channel-protocol lacp`, then
+   re-apply `channel-protocol lacp` + `channel-group 1 mode active`), not
+   just flapping the link. If you hit this, go straight to the full
+   remove-and-re-add.
+6. **OSPFv3 (`ipv6 router ospf`) does not form adjacencies on this Packet
+   Tracer build — confirmed exhaustively, not assumed.** If you're rebuilding
+   Phase 2's IPv6 routing and reach for OSPFv3 to mirror the IPv4 OSPFv2
+   design, stop — it was tried first, with config verified correct via
+   `show ipv6 protocols`, `show ipv6 ospf interface brief`, a full interface
+   bounce, and a full process rebuild on the simplest possible isolated link,
+   and it never once formed a neighbor (`Nbrs F/C` stayed `0/0` everywhere).
+   OSPFv2 works fine on the same physical links, so this is a genuine
+   simulator limitation. Use static IPv6 routes instead — see
+   `asean-network-topology.md`'s "Phase 2 — IPv6 routing plan" section for
+   the exact routes, and `../evidences/README.md`'s "IPv6 Cross-Site
+   Routing" section for the full troubleshooting record.
 
 ## 4. Paste order per device
 
@@ -76,8 +109,8 @@ addressing plan stays intact.
    if you hit the terminal's paste buffer limit — split at each `!` section).
 4. `end` then `copy running-config startup-config` to save.
 
-Do this for all six devices, adjusting interface names per device 2 above as
-you go.
+Do this for all six original devices (plus `MY-KL-HQ-DIST` once you get to
+it), adjusting interface names per device 2 above as you go.
 
 ## 5. What should work right now — and what won't yet
 
