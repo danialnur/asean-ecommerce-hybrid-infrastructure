@@ -274,3 +274,36 @@ This is the real end-to-end proof: IPv6 dual-stack now means addressing *and* ro
   <img src="./phase-2-dynamic-routing-ipv6/20-ping-ipv6-ph-mnl-roas-to-th-bkk-roas.png" alt="Cross-site IPv6 ping, PH-MNL-ROAS to TH-BKK-ROAS"><br>
   <sub><code>PH-MNL-ROAS# ping 2001:DB8:4:10:250:FFF:FEC1:DD01</code> — genuinely cross-site (Manila to Bangkok's MGMT address), 100% success</sub>
 </p>
+
+## Confirmed Packet Tracer Limitations
+
+Everything above proves something works. These two prove the opposite — that Packet Tracer 9.0.0's simulated IOS
+itself can't do something, regardless of how correct the config is — backing up the claims already made in the
+[EtherChannel](#etherchannel) and [IPv6 Cross-Site Routing](#ipv6-cross-site-routing) sections above with actual
+screenshots instead of just prose.
+
+**`show lacp` does not exist on this platform.** Alphabetically, a `lacp` keyword would sit between `ipv6` and
+`license` in the command tree — it isn't there. Confirmed by paging through the complete `sh ?` output on
+`MY-KL-HQ-CORE` rather than assuming from one failed attempt. `show etherchannel summary`/`show etherchannel
+<group> detail` are the working alternative used throughout the EtherChannel troubleshooting above.
+
+<p align="center">
+  <img src="./platform-limitations/01-show-lacp-not-supported-part1.png" alt="sh ? output, part 1, no lacp keyword"><br>
+  <sub><code>MY-KL-HQ-CORE# sh ?</code> — part 1 of 2</sub>
+</p>
+
+<p align="center">
+  <img src="./platform-limitations/02-show-lacp-not-supported-part2.png" alt="sh ? output, part 2, no lacp keyword"><br>
+  <sub><code>MY-KL-HQ-CORE# sh ?</code> — part 2 of 2, list ends with no <code>lacp</code> entry anywhere</sub>
+</p>
+
+**`passive-interface` under `ipv6 router ospf` rejects standard `GigabitEthernet1/0/22` syntax**, even though
+that exact interface name works everywhere else in this project (`interface GigabitEthernet1/0/22`, `ip ospf
+1 area 0`, every other command that takes an interface argument). This is what actually forced the OSPFv3
+design to drop `passive-interface` entirely and enable `ipv6 ospf 1 area 0` directly per-interface instead — a
+decision explained in the IPv6 Cross-Site Routing section above, now backed by the actual failure it was based on.
+
+<p align="center">
+  <img src="./platform-limitations/03-passive-interface-ipv6-ospf-invalid-input.png" alt="passive-interface Invalid input error under ipv6 router ospf"><br>
+  <sub><code>MY-KL-HQ-CORE(config-rtr)# no passive-interface g1/0/22</code> — <code>% Invalid input detected at '^' marker</code></sub>
+</p>
