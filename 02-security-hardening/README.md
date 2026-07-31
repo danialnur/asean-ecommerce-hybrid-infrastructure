@@ -10,6 +10,8 @@ Full design rationale, the placeholder services-server addressing, and the ACL p
 
 ## In this folder
 
+- [`evidences/`](evidences/) — live verification screenshots (DHCP Snooping, DAI, NAT, ACLs) — includes one
+  known gap found while capturing it, see that folder's `README.md`
 - [`pki-certificates/`](pki-certificates/) — real OpenSSL-built internal CA, CSR, and signed TLS certificate,
   not a simulated placeholder
 - [`threat-simulations/`](threat-simulations/) — TCP vs UDP packet capture evidence, still outstanding (see that

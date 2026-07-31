@@ -62,6 +62,8 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes (DHCP Snooping/DAI,
 │                         # port security, and ACL configs all live inline in Phase 1's switching/router-configs
 │                         # files, not in separate folders here)
+├── evidences/            # DHCP Snooping/DAI, NAT, and ACL verification screenshots - includes a known gap
+│                         # (WAN-EDGE-INBOUND ACL committed but not yet applied live, see that folder's README)
 ├── pki-certificates/     # Real OpenSSL CA, CSR, signed certificate + explanation
 └── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode) - still outstanding
 
