@@ -65,7 +65,7 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ├── evidences/            # DHCP Snooping/DAI, NAT, and ACL verification screenshots - includes a known gap
 │                         # (WAN-EDGE-INBOUND ACL committed but not yet applied live, see that folder's README)
 ├── pki-certificates/     # Real OpenSSL CA, CSR, signed certificate + explanation
-└── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode) - TCP done, UDP outstanding
+└── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode)
 
 03-aws-cloud-infrastructure/
 ├── terraform/            # VPC, Security Groups/NACLs, ALB/ASG, RDS, WAF, KMS/S3 logging, Site-to-Site VPN

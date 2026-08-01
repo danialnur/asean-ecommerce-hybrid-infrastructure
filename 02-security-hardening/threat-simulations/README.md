@@ -29,8 +29,20 @@ the raw TCP header rather than pre-decoded flag names (unlike Wireshark), so eac
 
 ## UDP — a single connectionless datagram
 
-Still outstanding. Trigger: a port-security violation on an access port generating a Syslog message toward
-`MY-KL-DMZ-SRV` (`10.10.40.10`, Syslog service enabled — see
-[`../evidences/tftp-backup/`](../evidences/tftp-backup/) for how that server was added), captured the same way in
-Simulation Mode. The point of contrast: a single
-datagram, no SYN/ACK negotiation, no connection state — unlike the three packets above.
+Triggered with a real port-security violation, not a synthetic example: `MY-KL-HQ-CORE`'s `Gi1/0/3` was
+temporarily configured as a test access port (`switchport port-security maximum 1`, `violation restrict`), with
+a hub and two PCs attached so a second, different MAC address would hit the port after the first was already
+secured. The resulting violation generated a real Syslog message toward `MY-KL-DMZ-SRV` (`10.10.40.10`, Syslog
+service enabled — see [`../evidences/tftp-backup/`](../evidences/tftp-backup/) for how that server was added),
+captured the same way in Simulation Mode as the TCP handshake above. `Gi1/0/3` and the two temporary PCs were
+removed afterward - this was a one-off trigger, not part of the permanent topology.
+
+<p align="center">
+  <img src="./04-udp-syslog-port-security-violation.png" alt="UDP syslog packet, IP and UDP headers"><br>
+  <sub><code>10.10.40.2 → 10.10.40.10</code>, <code>PRO=0x11 (UDP)</code>, <code>Destination Port: 514</code>
+  (syslog) — a single datagram, no SYN/ACK fields anywhere in either header, no connection state at all</sub>
+</p>
+
+The contrast with the TCP capture above is the whole point: three packets and explicit flag negotiation just to
+*open* a TCP connection, versus one UDP datagram that either arrives or doesn't - no handshake, no acknowledgment
+built into the protocol itself.

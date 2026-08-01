@@ -14,8 +14,8 @@ Full design rationale, the placeholder services-server addressing, and the ACL p
   backup) — includes a gap that was found and fixed live along the way, see that folder's `README.md`
 - [`pki-certificates/`](pki-certificates/) — real OpenSSL-built internal CA, CSR, and signed TLS certificate,
   not a simulated placeholder
-- [`threat-simulations/`](threat-simulations/) — TCP vs UDP packet capture evidence — TCP handshake done, UDP
-  still outstanding (see that folder's `README.md`)
+- [`threat-simulations/`](threat-simulations/) — TCP 3-way handshake and UDP (syslog) packet capture evidence,
+  demonstrating the CCNA 1.5 connection-oriented vs connectionless contrast
 
 DHCP Snooping/DAI, port security, and ACL config itself lives in `../01-regional-on-premises-network/switching/`
 and `router-configs/` — those `.cfg` files carry every Phase 1-3 objective together, not split by phase.
