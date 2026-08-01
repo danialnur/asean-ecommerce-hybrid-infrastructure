@@ -157,9 +157,8 @@ that doesn't report much back.
 ## TFTP Configuration Backup
 
 `phase3-plan.md` calls for a real `copy running-config tftp:` backup, per the CCNA 4.9 objective. First attempt
-genuinely failed — `10.10.40.10` was a placeholder address with no real device behind it (this topology
-deliberately doesn't model server devices, see `phase3-plan.md`'s "Placeholder server inventory"), so the
-transfer timed out waiting for something that didn't exist.
+genuinely failed — `10.10.40.10` was a placeholder address with no real device behind it yet (see
+`phase3-plan.md`'s "Server inventory"), so the transfer timed out waiting for something that didn't exist.
 
 <p align="center">
   <img src="./tftp-backup/01-copy-running-config-tftp-timeout-before-server-existed.png" alt="TFTP backup timeout, no server yet"><br>

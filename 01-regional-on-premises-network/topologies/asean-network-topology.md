@@ -60,11 +60,16 @@ exists purely as the WAN-to-cloud on-ramp.
 | `PH-MNL-ACC`        | Access switch (L2)                | Catalyst 2960-24TT | Manila         |
 | `TH-BKK-ROAS`      | Router-on-a-stick                 | ISR 4321           | Bangkok        |
 | `TH-BKK-ACC`        | Access switch (L2)                | Catalyst 2960-24TT | Bangkok        |
+| `MY-KL-DMZ-SRV`     | Core services server (TFTP / Syslog / SNMP trap receiver), `MY-KL-HQ-CORE` `Gi1/0/21`, VLAN 40 | Packet Tracer Server device | Kuala Lumpur |
 
 `MY-KL-HQ-DIST` isn't part of the routed hub-and-spoke topology above - it exists solely so `MY-KL-HQ-CORE`'s
 LACP EtherChannel (`Port-channel1`) has a real peer to bundle with. Nothing else in this project routes through
 or depends on it, so it's out of scope for the Phase 3 security-hardening pass (no SSH/port-security/ACL
 hardening applied there).
+
+`MY-KL-DMZ-SRV` was added mid-Phase 3, after the first TFTP backup attempt against the `10.10.40.10` placeholder
+genuinely timed out with no device behind it - see `../../02-security-hardening/evidences/README.md`'s "TFTP
+Configuration Backup" section for the full before/after evidence.
 
 ## IPv4 VLSM plan
 

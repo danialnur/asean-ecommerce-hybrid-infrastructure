@@ -93,5 +93,6 @@ bridge to a live SSH target (confirmed directly, not assumed — see `04-automat
 ## Lab platform
 
 Built and verified in **Cisco Packet Tracer 9.0.0**, using confirmed device models: Catalyst 3650-24PS (core +
-distribution, ×2), Catalyst 2960-24TT (access), ISR 4331 (WAN edge), ISR 4321 (router-on-a-stick, ×2). PKI work
+distribution, ×2), Catalyst 2960-24TT (access), ISR 4331 (WAN edge), ISR 4321 (router-on-a-stick, ×2), plus a
+Packet Tracer Server device (`MY-KL-DMZ-SRV`, TFTP/Syslog/SNMP trap receiver) added mid-Phase 3. PKI work
 (Phase 3) uses real OpenSSL on the host machine, not a Packet Tracer simulation.

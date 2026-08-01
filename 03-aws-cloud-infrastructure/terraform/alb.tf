@@ -10,8 +10,14 @@
 # LocalStack license"). This resource set is correct, deployable AWS
 # Terraform - verified only via `terraform plan`, not `apply`, in this
 # project's local testing. The IAM role/instance profile and launch
-# template further down ARE free-tier and were verified with a real
-# `apply` against LocalStack.
+# template further down are free-tier resources in their own right,
+# but they reference aws_db_instance.primary.master_user_secret[0]
+# (below and in launch_template's user_data) - an attribute RDS only
+# populates on a successful apply, and rds.tf documents that
+# aws_db_instance is itself paid-tier-gated on LocalStack. So these
+# two resources were never actually apply-tested end-to-end either;
+# see 03-aws-cloud-infrastructure/docs/screenshots.md for exactly
+# which resources the LocalStack run did apply.
 # =============================================================
 
 resource "aws_lb" "main" {

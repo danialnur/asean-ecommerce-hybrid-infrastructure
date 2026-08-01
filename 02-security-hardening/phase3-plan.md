@@ -4,16 +4,19 @@ Reference plan for Phase 3 (`02-security-hardening/`). Built the same way the Ph
 were — design first, then type it in device by device. Maps to CCNA 200-301 Domains 4.0/5.0 and
 Security+ SY0-701 Domains 1.0/2.0/4.0.
 
-## Placeholder server inventory
+## Server inventory
 
-No server devices are modeled in this Packet Tracer topology (same situation as the AWS/IPsec placeholders
-in Phase 1/2), so Phase 3's IP services all point at one consolidated placeholder address sitting in Malaysia
-HQ's `DMZ_SERVERS` VLAN — which is exactly what that VLAN's description already says it's for ("TFTP / SIEM /
-RADIUS").
+Phase 3's IP services all point at one consolidated address sitting in Malaysia HQ's `DMZ_SERVERS` VLAN — which
+is exactly what that VLAN's description already says it's for ("TFTP / SIEM / RADIUS"). It started life as a
+placeholder address with no device behind it, but the first real TFTP backup attempt against it genuinely timed
+out, so a real Packet Tracer Server device (`MY-KL-DMZ-SRV`) was added on `MY-KL-HQ-CORE`'s `Gi1/0/21` rather than
+just documenting the failure — see `evidences/README.md`'s "TFTP Configuration Backup" section for the full
+before/after evidence. It currently runs TFTP and Syslog for real; SNMP trap receipt, DHCP, and RADIUS are still
+configured as targets on the network devices but not verified against a live service on the server itself.
 
 | Service | Address | Notes |
 |---|---|---|
-| Core services server (DHCP, TFTP, Syslog/SIEM, RADIUS, SNMP trap receiver) | `10.10.40.10` | Single consolidated placeholder — a real deployment would likely split these across dedicated hosts, but one address is enough to demonstrate every protocol correctly |
+| `MY-KL-DMZ-SRV` (TFTP, Syslog; DHCP/RADIUS/SNMP-trap-receiver configured as targets but not live-verified) | `10.10.40.10` | Single consolidated host — a real deployment would likely split these across dedicated hosts, but one address is enough to demonstrate every protocol correctly |
 | NTP source | `MY-KL-HQ-CORE` itself (`ntp master`) | No real internet-reachable NTP server exists in this lab, so Malaysia HQ is designated the authoritative internal time source, matching real practice for isolated/lab networks |
 
 ## ACL policy design

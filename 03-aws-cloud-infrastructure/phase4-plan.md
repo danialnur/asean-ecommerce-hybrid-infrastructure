@@ -40,9 +40,9 @@ actually needs), and the second digit of the third octet doubles as a tier ident
 |---|---|
 | `vpc.tf` | VPC, 6 subnets (3 tiers × 2 AZs), Internet Gateway, 2 NAT Gateways (one per AZ, for true multi-AZ resilience — a single NAT Gateway would be a single point of failure), route tables |
 | `security-groups.tf` | Security Groups (stateful, instance-level) for ALB/app/DB tiers, plus Network ACLs (stateless, subnet-level) as a second defense layer |
-| `alb.tf` | Application Load Balancer, target group, listener, launch template, Auto Scaling Group |
-| `rds.tf` | Multi-AZ RDS instance (PostgreSQL), read replica, Secrets Manager secret for credentials |
-| `waf.tf` | AWS WAF Web ACL attached to the ALB, with managed rule groups for SQLi and XSS |
+| `alb.tf` | Application Load Balancer, target group, HTTPS + HTTP-redirect listeners, launch template, Auto Scaling Group |
+| `rds.tf` | Multi-AZ RDS instance (PostgreSQL), read replica; credentials via `manage_master_user_password = true` (RDS generates and owns its own Secrets Manager secret — Terraform never sees the plaintext password) |
+| `waf.tf` | AWS WAF Web ACL attached to the ALB, with managed rule groups for SQLi and XSS plus a per-IP rate-limit rule |
 | `logging.tf` | KMS key + encrypted S3 bucket for audit logging |
 | `vpn-gateway.tf` | Customer Gateway (pointed at `SG-EDGE-GW`'s placeholder IP), Virtual Private Gateway, Site-to-Site VPN Connection |
 | `variables.tf` / `outputs.tf` | Shared input variables and output values referenced across the other files |

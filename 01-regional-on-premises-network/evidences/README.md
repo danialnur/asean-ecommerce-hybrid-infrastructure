@@ -8,6 +8,8 @@ configs in `../switching/` and `../router-configs/` behave as documented — not
   security, SSH
 - [`phase-2-dynamic-routing-ipv6/`](phase-2-dynamic-routing-ipv6/) — OSPF adjacencies/routes, IPv4 reachability,
   IPv6 addressing and routing
+- [`platform-limitations/`](platform-limitations/) — screenshot proof of two confirmed Packet Tracer 9.0.0
+  limitations (`show lacp` missing, `passive-interface` rejected under `ipv6 router ospf`)
 
 Ordered start to finish, from the physical topology through to the last thing actually built and verified
 (IPv6 cross-site routing) — file numbers in `./phase-1-basic-connectivity/` and

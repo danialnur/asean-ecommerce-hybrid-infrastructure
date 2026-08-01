@@ -1,10 +1,23 @@
 # Phase 4 — LocalStack Validation Screenshots
 
-Evidence of a full `terraform plan` → `apply` → verify → `destroy` cycle run against **LocalStack** (a local AWS
+Evidence of a `terraform plan` → `apply` → verify → `destroy` cycle run against **LocalStack** (a local AWS
 API emulator), not a real AWS account — see `../phase4-plan.md` for why this project never applies the Terraform
 in `../terraform/` against real AWS. LocalStack still exercises the actual Terraform code and the AWS provider's
-API calls, so this confirms the configuration is mechanically correct, not just written and assumed correct.
+API calls, so this confirms the configuration is mechanically correct for the resources it actually covers — see
+the disclosure below for exactly which ones that is.
 (Converted from the original `screenshots.docx` so it renders directly on GitHub instead of requiring a download.)
+
+**What was and wasn't actually applied:** LocalStack's free tier doesn't include the `elbv2`, `rds`, or `wafv2`
+services (confirmed via real `terraform apply` attempts that failed with "the \<service\> service is not included
+within your LocalStack license" — see the `PLATFORM LIMITATION` comments at the top of `alb.tf`, `rds.tf`, and
+`waf.tf`). That means `aws_lb`, both listeners, the target group, the ASG/launch template (which depends on RDS's
+generated secret ARN), `aws_db_instance`, and `aws_wafv2_web_acl` were only ever validated with `terraform plan` —
+never `apply` — against LocalStack. `vpn-gateway.tf` has one more LocalStack gap on top of that: `aws_vpn_connection_route`
+and both `aws_vpn_gateway_route_propagation` resources aren't implemented in LocalStack at all. The plan screenshot
+below (68 resources) reflects the full configuration, including all of the above; the apply/verify/destroy
+screenshots that follow only ever created and tore down the free-tier subset — VPC, subnets, security groups,
+routing, KMS/S3 logging, IAM, and the VPN connection itself. No screenshot below shows `aws_lb`, `aws_db_instance`,
+or `aws_wafv2_web_acl` in an applied state, because none of them ever were.
 
 **Note on the RDS credentials screenshots below:** this apply cycle predates a later fix to `rds.tf`. At the time
 of this run, the master password was generated via `random_password` and written into a manually-created
@@ -14,6 +27,12 @@ uses `manage_master_user_password = true` instead, so RDS generates and owns the
 sees the plaintext at all. The secret name/ARN shown below no longer matches current code for that reason; the
 screenshots are kept as evidence that the Secrets Manager + RDS apply flow works end-to-end, not as a description
 of the current credential-handling design.
+
+That same refactor is also the full explanation for the plan count itself: the "68 to add" below was captured
+against the pre-refactor code, which had three extra resources this commit removed — `random_password.db_master`,
+`aws_secretsmanager_secret.db_credentials`, and `aws_secretsmanager_secret_version.db_credentials`. Current code
+plans at exactly 65 resources (verified by counting every `resource` block across all `.tf` files, expanding the
+ten that carry `count = length(...)` over the 2-AZ variable lists) — 68 minus those 3 removed resources, exactly.
 
 ## Plan & Apply
 
