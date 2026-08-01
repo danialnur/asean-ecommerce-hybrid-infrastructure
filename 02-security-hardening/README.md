@@ -10,12 +10,12 @@ Full design rationale, the placeholder services-server addressing, and the ACL p
 
 ## In this folder
 
-- [`evidences/`](evidences/) — live verification screenshots (DHCP Snooping, DAI, NAT, ACLs) — includes one
-  known gap found while capturing it, see that folder's `README.md`
+- [`evidences/`](evidences/) — live verification screenshots (DHCP Snooping, DAI, NAT, ACLs, NTP/SNMP, TFTP
+  backup) — includes a gap that was found and fixed live along the way, see that folder's `README.md`
 - [`pki-certificates/`](pki-certificates/) — real OpenSSL-built internal CA, CSR, and signed TLS certificate,
   not a simulated placeholder
-- [`threat-simulations/`](threat-simulations/) — TCP vs UDP packet capture evidence, still outstanding (see that
-  folder's `README.md`)
+- [`threat-simulations/`](threat-simulations/) — TCP vs UDP packet capture evidence — TCP handshake done, UDP
+  still outstanding (see that folder's `README.md`)
 
 DHCP Snooping/DAI, port security, and ACL config itself lives in `../01-regional-on-premises-network/switching/`
 and `router-configs/` — those `.cfg` files carry every Phase 1-3 objective together, not split by phase.
