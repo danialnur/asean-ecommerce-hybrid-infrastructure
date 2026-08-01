@@ -88,9 +88,9 @@ nothing to increment from yet; this confirms the rule is programmed correctly, n
 ## Access Control Lists
 
 **`MY-KL-HQ-CORE`** — all 4 ACLs (`MGMT-SSH-ONLY`, `GUEST-CONTAINMENT`, and their IPv6 `-V6` counterparts) in one
-view. No match counts shown yet on `GUEST-CONTAINMENT` — confirms the ACL is correctly programmed, not that
-guest-sourced traffic has actually been blocked by it (no PC exists in a `GUEST_WIFI` VLAN in this topology to
-generate that traffic).
+view. No match counts shown here on `GUEST-CONTAINMENT` — this particular capture only confirms the ACL is
+correctly programmed on this device, not that it's actively blocking anything. Real enforcement proof (a genuine
+deny hit count) is captured below, on `PH-MNL-ROAS`.
 
 <p align="center">
   <img src="./access-control-lists/01-access-lists-my-kl-hq-core.png" alt="MY-KL-HQ-CORE access lists"><br>
@@ -118,6 +118,26 @@ for well-known ports, not a discrepancy from what was actually configured.
 <p align="center">
   <img src="./access-control-lists/04-access-lists-sg-edge-gw.png" alt="SG-EDGE-GW access lists"><br>
   <sub><code>SG-EDGE-GW# sh access-lists</code> — all 4 ACLs present, including the fixed <code>WAN-EDGE-INBOUND</code></sub>
+</p>
+
+**`PH-MNL-ROAS` — real enforcement, not just configuration.** A temporary test PC (`TEST-PC1`, `10.10.112.50`,
+connected to `PH-MNL-ACC`'s real `GUEST_WIFI` access port `Fa0/21`) pinged `PH-MNL-ROAS`'s own MGMT address
+(`10.10.110.1`) — squarely inside `GUEST-CONTAINMENT`'s deny rule. The ping genuinely failed
+(`Destination host unreachable`, sourced from `10.10.112.1` — `PH-MNL-ROAS`'s own GUEST_WIFI-facing interface,
+confirming the router itself blocked it rather than a generic timeout), and the ACL's deny counter incremented
+for real: `20 deny ip 10.10.112.0 ... 10.10.110.0 ... (4 match(es))`. This is the one piece of evidence in this
+folder that proves an ACL is actively enforcing something, not just sitting correctly configured.
+`TEST-PC1`/`TEST-HUB`/`TEST-PC2` were removed afterward - temporary test scaffolding, not part of the permanent
+topology.
+
+<p align="center">
+  <img src="./access-control-lists/06-ping-guest-wifi-to-mgmt-denied.png" alt="Ping from GUEST_WIFI to MGMT, denied"><br>
+  <sub><code>TEST-PC1 (10.10.112.50)# ping 10.10.110.1</code> — 100% loss, <code>Destination host unreachable</code> from <code>PH-MNL-ROAS</code></sub>
+</p>
+
+<p align="center">
+  <img src="./access-control-lists/05-access-lists-ph-mnl-roas.png" alt="PH-MNL-ROAS access lists, GUEST-CONTAINMENT with real hits"><br>
+  <sub><code>PH-MNL-ROAS# sh access-lists</code> — <code>GUEST-CONTAINMENT</code> deny rule 20 shows <code>(4 match(es))</code>, genuine enforcement</sub>
 </p>
 
 ## NTP & SNMP
