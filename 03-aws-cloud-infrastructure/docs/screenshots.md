@@ -30,9 +30,11 @@ of the current credential-handling design.
 
 That same refactor is also the full explanation for the plan count itself: the "68 to add" below was captured
 against the pre-refactor code, which had three extra resources this commit removed — `random_password.db_master`,
-`aws_secretsmanager_secret.db_credentials`, and `aws_secretsmanager_secret_version.db_credentials`. Current code
-plans at exactly 65 resources (verified by counting every `resource` block across all `.tf` files, expanding the
-ten that carry `count = length(...)` over the 2-AZ variable lists) — 68 minus those 3 removed resources, exactly.
+`aws_secretsmanager_secret.db_credentials`, and `aws_secretsmanager_secret_version.db_credentials` — landing at 65.
+A later fix added one more (`aws_security_group_rule.alb_ingress_http`, opening port 80 on the ALB's SG so the
+`http_redirect` listener in `alb.tf` is actually reachable), so current code plans at exactly 66 resources
+(verified by counting every `resource` block across all `.tf` files, expanding the ten that carry
+`count = length(...)` over the 2-AZ variable lists) — 68 minus the 3 removed plus the 1 added, exactly.
 
 ## Plan & Apply
 
@@ -44,6 +46,14 @@ ten that carry `count = length(...)` over the 2-AZ variable lists) — 68 minus 
 
 **`terraform apply` complete** — 5 added, 0 changed, 1 destroyed; outputs include subnet IDs, audit log bucket, KMS key ARN, VPN tunnel addresses
 ![terraform apply complete](screenshots/03-terraform-apply-complete.png)
+
+**Known LocalStack quirk in this output:** `vpn_tunnel1_address` and `vpn_tunnel2_address` above both show the
+same IP (`52.2.144.13`). `outputs.tf` is correct — the two outputs reference `aws_vpn_connection.main.tunnel1_address`
+and `.tunnel2_address`, genuinely distinct provider attributes — and the raw AWS-side tunnel config in the
+`describe-vpn-connections` screenshot below confirms two real, different tunnel addresses (`52.2.144.13` and
+`52.2.144.41`) exist. LocalStack's VPN emulation appears to populate both top-level output attributes from the
+same underlying tunnel entry. Don't use `vpn_tunnel2_address` from a LocalStack apply as the real second-tunnel
+peer address — use the `describe-vpn-connections` XML (or a real AWS apply) instead.
 
 ## Verifying Applied Resources
 

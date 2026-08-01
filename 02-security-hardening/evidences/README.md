@@ -142,6 +142,13 @@ topology.
 
 ## NTP & SNMP
 
+**NTP has no verification evidence here yet — an acknowledged gap, not an oversight.** `MY-KL-HQ-CORE` is
+configured `ntp master 3`, and every other device (`PH-MNL-ACC`, `TH-BKK-ACC`, `PH-MNL-ROAS`, `TH-BKK-ROAS`,
+`SG-EDGE-GW`) is configured `ntp server 10.255.255.1` pointing at it — a real, topology-wide hierarchy, not just a
+single command on one box. Despite that, nothing in this repo confirms it actually works: no `show ntp status`,
+`show ntp associations`, or `show clock detail` anywhere. Closing this needs a screenshot from one of the client
+devices showing `Clock is synchronized` (or equivalent) against `MY-KL-HQ-CORE`, taken live in Packet Tracer.
+
 **`show snmp` (bare, no arguments) returns genuinely empty output on this platform** — not a structured
 zero-counters report the way real Cisco IOS shows, and not what was originally predicted before actually running
 it. Confirmed the command itself is accepted (no error), it just produces nothing. This is the SNMPv2c
@@ -168,7 +175,9 @@ genuinely failed — `10.10.40.10` was a placeholder address with no real device
 Rather than just documenting the failure and moving on, a real TFTP server (`MY-KL-DMZ-SRV`, `10.10.40.10`) was
 added to the topology — a Packet Tracer Server device on `MY-KL-HQ-CORE`'s `Gi1/0/21`, matching the DMZ_SERVERS
 VLAN's addressing exactly. With the server actually in place and its TFTP service enabled, the same command
-succeeds for real:
+succeeds for real (accepting IOS's own default destination filename, `MY-KL-HQ-CORE-confg`, rather than the
+dated custom filename `phase3-plan.md`'s workflow section recommends — worth using a dated name if this backup
+is ever repeated later in the project):
 
 <p align="center">
   <img src="./tftp-backup/02-copy-running-config-tftp-success-my-kl-hq-core.png" alt="TFTP backup success"><br>
@@ -182,3 +191,9 @@ router's word for it:
   <img src="./tftp-backup/03-tftp-server-file-listing-my-kl-dmz-srv.png" alt="TFTP server file listing showing the uploaded config"><br>
   <sub><code>MY-KL-DMZ-SRV</code> Config → Services → TFTP file list — <code>MY-KL-HQ-CORE-confg</code> present</sub>
 </p>
+
+**Acknowledged evidence gap:** these three screenshots prove the TFTP transfer itself worked, but
+`MY-KL-HQ-CORE.cfg`'s `GigabitEthernet1/0/21` block (`switchport access vlan 40`, port-security maximum 1) was
+written to match this section's prose, not verified against a live capture of that specific interface. No
+`sh vlan brief` or `sh port-security interface Gi1/0/21` since the server was added confirms the live port
+actually matches what's now committed. Worth a quick recapture to close the loop.

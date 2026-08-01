@@ -18,7 +18,8 @@ Every rule below is a separate `aws_security_group_rule` resource — none of th
 
 | Security Group | Direction | Port | Source/Destination | Reasoning |
 |---|---|---|---|---|
-| `alb-sg` | Ingress | 443/tcp | `0.0.0.0/0` | Only entry point from the public internet in the whole design. HTTPS only — no plaintext HTTP ingress. |
+| `alb-sg` | Ingress | 443/tcp | `0.0.0.0/0` | Only entry point from the public internet for real traffic. |
+| `alb-sg` | Ingress | 80/tcp | `0.0.0.0/0` | Needed so `alb.tf`'s `http_redirect` listener (port 80 → 301 to HTTPS) is actually reachable — nothing is ever served over plaintext, the ALB immediately redirects it. |
 | `alb-sg` | Egress | 8443/tcp | `app-sg` | ALB forwards decrypted-and-reencrypted traffic only to the app tier's SG, never to a raw CIDR. |
 | `app-sg` | Ingress | 8443/tcp | `alb-sg` | App tier only accepts traffic that has already passed through the ALB — direct internet or intra-VPC access is not possible even if someone had the private IP. |
 | `app-sg` | Egress | 443/tcp | `0.0.0.0/0` | Outbound HTTPS for OS patching / package installs, routed via the NAT Gateway (app subnets have no public IP of their own). |
@@ -35,6 +36,7 @@ Stateless means: return traffic is NOT automatically permitted. Every NACL below
 | NACL | Direction | Rule # | Port | CIDR | Purpose |
 |---|---|---|---|---|---|
 | `public-nacl` | Ingress | 100 | 443 | `0.0.0.0/0` | HTTPS from the internet |
+| `public-nacl` | Ingress | 105 | 80 | `0.0.0.0/0` | Matches `alb-sg`'s port-80 rule above — same `http_redirect` listener, both layers have to allow it |
 | `public-nacl` | Ingress | 110 | 1024–65535 | `0.0.0.0/0` | Ephemeral return traffic for any connection initiated by clients on the internet |
 | `public-nacl` | Egress | 100 | all | `0.0.0.0/0` | Public subnet is genuinely public — ALB responses and NAT Gateway traffic both need broad egress |
 | `app-nacl` | Ingress | 100 | 8443 | VPC CIDR | App traffic, scoped to the VPC rather than the internet (NACLs can't reference the ALB's SG directly) |

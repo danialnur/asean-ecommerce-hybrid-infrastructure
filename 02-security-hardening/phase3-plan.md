@@ -63,6 +63,13 @@ permitted by default — no ACL restricts it, since there's no business reason t
 a DHCP lease — **LOGISTICS_SALES (20)** and **GUEST_WIFI (30)**. `MGMT` and `DMZ_SERVERS` are infrastructure/admin
 subnets that would use static addressing in a real deployment, so no relay is configured there.
 
+**Acknowledged evidence gap:** unlike every other objective in this phase, DHCP relay has no verification
+screenshot anywhere in `evidences/` — no `show ip dhcp binding`, no client actually leasing an address through the
+relay. The config is real and genuinely applied, but closing this properly needs `MY-KL-DMZ-SRV`'s DHCP service
+enabled with a real pool plus a client PC on `LOGISTICS_SALES` or `GUEST_WIFI` actually requesting a lease -
+harder to stage live than the other objectives in this phase, which is exactly why it's called out here instead
+of left silently unverified.
+
 ## TFTP configuration backup — an EXEC workflow, not stored config
 
 Unlike everything else in this phase, `copy running-config tftp:` is an **interactive EXEC command**, not a

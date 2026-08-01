@@ -89,6 +89,16 @@ state.
   <sub><code>MY-KL-HQ-CORE# sh spanning-tree summary</code> — rapid-PVST+, PortFast/BPDU Guard enabled</sub>
 </p>
 
+**Flagging honestly rather than glossing over:** unlike the two access-switch captures below, this particular
+`MY-KL-HQ-CORE` capture shows `Root bridge for:` with nothing listed after it, and the per-VLAN table has zero
+rows with an all-zero `6 vlans` total (`0` blocking/listening/learning/forwarding/active) — even though
+`MY-KL-HQ-CORE.cfg` has `spanning-tree vlan 10,20,30,40,99 root primary` and the switch demonstrably has active
+trunk/access ports on those VLANs elsewhere in this same evidence set (`EtherChannel`, `VLANs`, `Trunking`
+sections above). The most likely explanation is this capture was taken before spanning-tree had finished
+converging on this device, not a live misconfiguration - but that's not confirmed, and as committed this specific
+screenshot doesn't actually demonstrate root-bridge status or forwarding state the way it's meant to. Worth a
+recapture to replace this screenshot with one taken after convergence.
+
 `PH-MNL-ACC# sh spanning-tree summary` and `TH-BKK-ACC# sh spanning-tree summary` both show `Root bridge for:
 MGMT LOGISTICS_SALES GUEST_WIFI DMZ_SERVERS NATIVE`, i.e. each access switch is root of its *own* domain, not a
 subordinate of `MY-KL-HQ-CORE`. That's correct, not a misconfiguration: each access switch sits behind its
@@ -108,6 +118,14 @@ all 6 VLANs forwarding cleanly.
 </p>
 
 ## Port Security
+
+All three captures below show `Port Status: Secure-down` and `Total MAC Addresses: 0` — these ports were never
+actually connected to anything at this point in Phase 1, so this only proves the feature is administratively
+configured (enabled, violation mode, max MAC count), not that it actually restricts anything. Real enforcement -
+a genuine violation, triggered live - is demonstrated later, in
+[`02-security-hardening/threat-simulations/`](../../02-security-hardening/threat-simulations/)'s UDP capture
+section (`Gi1/0/3` temporarily set to `maximum 1`, a second MAC address deliberately triggering `violation
+restrict`).
 
 <p align="center">
   <img src="./phase-1-basic-connectivity/13-port-security-my-kl-hq-core.png" alt="MY-KL-HQ-CORE port security"><br>

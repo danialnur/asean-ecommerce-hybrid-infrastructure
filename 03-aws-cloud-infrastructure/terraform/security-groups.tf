@@ -27,7 +27,7 @@
 # against LocalStack, not a hypothetical), not just a style preference.
 resource "aws_security_group" "alb" {
   name        = "${var.project_name}-alb-sg"
-  description = "Internet-facing ALB - HTTPS only"
+  description = "Internet-facing ALB - HTTPS, plus HTTP for the redirect-to-HTTPS listener"
   vpc_id      = aws_vpc.main.id
 
   tags = {
@@ -43,6 +43,21 @@ resource "aws_security_group_rule" "alb_ingress_https" {
   cidr_blocks       = ["0.0.0.0/0"]
   security_group_id = aws_security_group.alb.id
   description       = "HTTPS from the internet"
+}
+
+# Without this, aws_lb_listener.http_redirect in alb.tf (port 80,
+# redirects to 443) is unreachable - the security group would drop
+# the traffic before it ever reached the ALB, making that listener
+# dead code. Caught by checking the LocalStack SG evidence screenshot
+# against alb.tf's listeners rather than assuming the two matched.
+resource "aws_security_group_rule" "alb_ingress_http" {
+  type              = "ingress"
+  from_port         = 80
+  to_port           = 80
+  protocol          = "tcp"
+  cidr_blocks       = ["0.0.0.0/0"]
+  security_group_id = aws_security_group.alb.id
+  description       = "HTTP from the internet - redirected to HTTPS by the ALB listener, never served"
 }
 
 resource "aws_security_group_rule" "alb_egress_to_app" {
@@ -142,6 +157,14 @@ resource "aws_network_acl" "public" {
     cidr_block = "0.0.0.0/0"
     from_port  = 443
     to_port    = 443
+  }
+  ingress {
+    rule_no    = 105
+    protocol   = "tcp"
+    action     = "allow"
+    cidr_block = "0.0.0.0/0"
+    from_port  = 80
+    to_port    = 80 # matches alb_ingress_http in the SG above - same http_redirect listener
   }
   ingress {
     rule_no    = 110
