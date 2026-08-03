@@ -32,10 +32,11 @@ no tag is forced where it doesn't genuinely apply).
 
 All 5 phases are now complete. Phase 4's Terraform is intentionally never run against a real AWS account — there
 is no live account behind this project, and every hourly-billed resource in the design (NAT Gateways, RDS Multi-AZ
-+ replica, EC2, ALB) would accrue real ongoing cost regardless of traffic. The configuration is written to be
-complete and correct; see `03-aws-cloud-infrastructure/phase4-plan.md` for the full reasoning. Phase 5's
-Netmiko/Ansible code is similarly never executed live, for a different reason: Packet Tracer 9.0.0 has no real-NIC
-bridge to a live SSH target (confirmed directly, not assumed — see `04-automation-and-secops/phase5-plan.md`).
+replica, EC2, ALB) would accrue real ongoing cost regardless of traffic. The configuration is written to be
+complete and correct; see [`03-aws-cloud-infrastructure/phase4-plan.md`](03-aws-cloud-infrastructure/phase4-plan.md)
+for the full reasoning. Phase 5's Netmiko/Ansible code is similarly never executed live, for a different reason:
+Packet Tracer 9.0.0 has no real-NIC bridge to a live SSH target (confirmed directly, not assumed — see
+[`04-automation-and-secops/phase5-plan.md`](04-automation-and-secops/phase5-plan.md)).
 
 ## What makes this different from a typical lab writeup
 
