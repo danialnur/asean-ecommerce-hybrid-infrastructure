@@ -161,6 +161,29 @@ stays stable no matter what happens to physical links.
 | `PH-MNL-ROAS` | `10.255.255.3/32` |
 | `TH-BKK-ROAS` | `10.255.255.4/32` |
 
+## Production Considerations
+
+This project is intentionally lab-scoped. A few design choices here are correct *for a Packet Tracer lab* but
+would need revisiting before carrying real production traffic:
+
+- **Single-core HSRP has no failover peer.** `MY-KL-HQ-CORE` is the only Layer 3 device at HQ — HSRP is
+  configured and correctly evidenced, but there's no second physical core switch to actually fail over to. A
+  production deployment would need a real active/standby core pair.
+- **Wireless was designed for but never deployed.** `Gi1/0/10` is provisioned as a trunk to a Cisco WLC, but no
+  WLC/APs were ever built (a project-scope decision, not an oversight). A real deployment needs the WLC, an AP
+  site survey, and dynamic wireless VLANs actually stood up.
+- **Static IPv6 routing is a simulator workaround, not the production recommendation.** OSPFv3 never forming
+  adjacencies is a confirmed Packet Tracer limitation, not a design choice — see the "Phase 2 — IPv6 routing
+  plan" section above. On real hardware, OSPFv3 (or another IGP) should be revisited, since static routes don't
+  scale as cleanly as new sites or links get added.
+- **No redundant WAN circuit anywhere.** Every site — including `SG-EDGE-GW`, the AWS on-ramp — has exactly one
+  upstream link. Production would want at least a backup circuit with floating-static or dynamic failover.
+- **Authentication is local-only, no centralized AAA.** Every device uses local `username`/`enable secret`
+  accounts. Production should integrate RADIUS/TACACS+ (e.g. Cisco ISE) instead of per-device local credentials.
+- **`MY-KL-HQ-DIST` is explicitly exempted from Phase 3 hardening** (no SSH/ACL/port-security), since it only
+  exists to validate LACP EtherChannel. A real distribution switch carrying production traffic wouldn't get that
+  exemption.
+
 ## Not yet in this plan (tracked for later phases)
 
 - **Floating static route / backup ISP failover** — intentionally out of scope. The topology has no second
