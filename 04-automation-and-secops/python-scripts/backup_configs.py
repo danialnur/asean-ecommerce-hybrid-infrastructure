@@ -17,10 +17,9 @@ Usage (if ever run against a reachable device):
 import datetime
 from pathlib import Path
 
+from devices import DEVICES, connection_params
 from netmiko import ConnectHandler
 from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
-
-from devices import DEVICES, connection_params
 
 BACKUP_DIR = Path(__file__).parent / "backups"
 
@@ -38,7 +37,7 @@ def backup_device(device: dict) -> None:
         print(f"[{device['name']}] TIMEOUT - device unreachable at {device['host']}")
         return
 
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+    timestamp = datetime.datetime.now().astimezone().strftime("%Y-%m-%d_%H%M%S")
     filename = BACKUP_DIR / f"{device['name'].lower()}-{timestamp}.cfg"
     filename.write_text(running_config)
     print(f"[{device['name']}] saved {filename.name} ({len(running_config)} bytes)")

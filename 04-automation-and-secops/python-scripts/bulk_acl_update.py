@@ -20,10 +20,9 @@ Usage (if ever run against a reachable device):
     python bulk_acl_update.py
 """
 
+from devices import GUEST_CONTAINMENT_DEVICES, connection_params
 from netmiko import ConnectHandler
 from netmiko.exceptions import NetmikoAuthenticationException, NetmikoTimeoutException
-
-from devices import GUEST_CONTAINMENT_DEVICES, connection_params
 
 NEW_DMZ_EXPANSION_SUBNET = "10.10.50.0 0.0.0.255"
 
