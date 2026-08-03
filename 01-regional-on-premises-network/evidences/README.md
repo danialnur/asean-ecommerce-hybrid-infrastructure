@@ -103,7 +103,7 @@ zero `Blocking` anywhere: VLAN10/20/30/99 each have only `Po1` forwarding, VLAN4
 forwarding. Confirmed by direct cross-check between the two commands, run back to back on the same device -
 `show spanning-tree summary`'s Blocking/Listening/Learning/Forwarding/STP-Active columns simply don't reflect
 reality here; the root-bridge line above it and the detailed `show spanning-tree` output are both trustworthy.
-See [`../platform-limitations/`](../platform-limitations/) for the confirming screenshots.
+See [`platform-limitations/`](platform-limitations/) for the confirming screenshots.
 
 `PH-MNL-ACC# sh spanning-tree summary` and `TH-BKK-ACC# sh spanning-tree summary` both show `Root bridge for:
 MGMT LOGISTICS_SALES GUEST_WIFI DMZ_SERVERS NATIVE`, i.e. each access switch is root of its *own* domain, not a

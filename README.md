@@ -57,14 +57,16 @@ Packet Tracer 9.0.0 has no real-NIC bridge to a live SSH target (confirmed direc
 ├── switching/            # Access/core/distribution switch configs (MY-KL-HQ-CORE, MY-KL-HQ-DIST, PH-MNL-ACC, TH-BKK-ACC)
 ├── router-configs/       # WAN/ROAS router configs (SG-EDGE-GW, PH-MNL-ROAS, TH-BKK-ROAS)
 ├── topologies/           # Topology diagram, IPv4/IPv6 addressing plan, Packet Tracer build guide
-└── evidences/            # README.md (verification write-up, auto-renders on GitHub), split into phase-1-basic-connectivity/ and phase-2-dynamic-routing-ipv6/
+└── evidences/            # README.md (verification write-up, auto-renders on GitHub) - phase-1-basic-connectivity/,
+                          # phase-2-dynamic-routing-ipv6/, and platform-limitations/ (3 confirmed Packet Tracer gaps)
 
 02-security-hardening/
 ├── phase3-plan.md        # Server inventory, ACL policy design, TFTP/PCAP workflow notes (DHCP Snooping/DAI,
 │                         # port security, and ACL configs all live inline in Phase 1's switching/router-configs
 │                         # files, not in separate folders here)
-├── evidences/            # DHCP Snooping/DAI, NAT, and ACL verification screenshots - includes a known gap
-│                         # (WAN-EDGE-INBOUND ACL committed but not yet applied live, see that folder's README)
+├── evidences/            # DHCP Snooping/DAI, NAT, and ACL verification screenshots - includes a gap found and
+│                         # fixed live during capture (WAN-EDGE-INBOUND was missing from SG-EDGE-GW, applied and
+│                         # recaptured), see that folder's README
 ├── pki-certificates/     # Real OpenSSL CA, CSR, signed certificate + explanation
 └── threat-simulations/   # TCP vs UDP packet capture evidence (Packet Tracer Simulation Mode)
 
@@ -79,6 +81,8 @@ Packet Tracer 9.0.0 has no real-NIC bridge to a live SSH target (confirmed direc
 ├── python-scripts/        # Netmiko config backup, bulk ACL update, device inventory (this one actually runs)
 ├── ansible-playbooks/     # Declarative VLAN + ACL deployment (cisco.ios collection)
 ├── logging-dashboard/     # Wazuh SIEM (Docker Compose) + representative sample logs
+├── evidences/             # Real Phase 5 screenshots: device_inventory.py, Netmiko's credential guard, Ansible
+│                          # install/syntax-check/inventory-graph, and the Wazuh syslog fix reproduced firsthand
 └── phase5-plan.md         # Scope decision (incl. the Packet Tracer real-NIC bridge finding), resource inventory
 ```
 
@@ -94,6 +98,6 @@ Packet Tracer 9.0.0 has no real-NIC bridge to a live SSH target (confirmed direc
 ## Lab platform
 
 Built and verified in **Cisco Packet Tracer 9.0.0**, using confirmed device models: Catalyst 3650-24PS (core +
-distribution, ×2), Catalyst 2960-24TT (access), ISR 4331 (WAN edge), ISR 4321 (router-on-a-stick, ×2), plus a
+distribution, ×2), Catalyst 2960-24TT (access, ×2), ISR 4331 (WAN edge), ISR 4321 (router-on-a-stick, ×2), plus a
 Packet Tracer Server device (`MY-KL-DMZ-SRV`, TFTP/Syslog/SNMP trap receiver) added mid-Phase 3. PKI work
 (Phase 3) uses real OpenSSL on the host machine, not a Packet Tracer simulation.

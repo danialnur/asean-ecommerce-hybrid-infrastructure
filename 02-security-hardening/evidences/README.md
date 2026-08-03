@@ -30,7 +30,7 @@ glossing over, both only visible on `MY-KL-HQ-CORE`'s output (the access switche
 to cross-check against):
 - `DHCP snooping is operational on following VLANs: none` — despite `configured on following VLANs: 10,20,30,40`
   immediately above it, and still shown as `none` even in the recaptured screenshot below. **Now confirmed
-  misleading, not a real gap:** the live DHCP relay test (see [`dhcp-relay/`](../dhcp-relay/) below) proved DHCP
+  misleading, not a real gap:** the live DHCP relay test (see [`dhcp-relay/`](dhcp-relay/) below) proved DHCP
   snooping is genuinely operating on this device - it's the exact mechanism that dropped the DHCP server's
   replies before the trust fix, and stopped dropping them after. A feature that's actively enforcing its own
   trust boundary is by definition operational. Same lesson as `show spanning-tree summary` and `show ntp
@@ -71,11 +71,11 @@ documenting in full rather than assuming it matches.
 DHCP-snooping-learned bindings. On real Cisco hardware, an untrusted port with no matching binding should have its
 ARP replies dropped by DAI. Tested directly: cleared `MY-KL-HQ-CORE`'s ARP cache (`clear arp-cache`) to force a
 genuinely fresh ARP exchange with `10.10.40.10`, then pinged it. The ping succeeded 100 percent, and
-`show ip arp inspection statistics vlan 40` stayed at all zeros (`Forwarded: 0, Dropped: 0`) both before and after
-- meaning either DAI isn't actually enforcing this scenario on this platform, or its statistics simply don't
-reflect what's happening. Either way, the same class of finding as `show spanning-tree summary` and `show ntp
-status` elsewhere in this project: something that doesn't reliably report reality, confirmed by testing rather
-than assumed from the command's face value.
+`show ip arp inspection statistics vlan 40` stayed at all zeros (`Forwarded: 0, Dropped: 0`) both before and after —
+meaning either DAI isn't actually enforcing this scenario on this platform, or its statistics simply don't reflect
+what's happening. Either way, the same class of finding as `show spanning-tree summary` and `show ntp status`
+elsewhere in this project: something that doesn't reliably report reality, confirmed by testing rather than
+assumed from the command's face value.
 
 `ip arp inspection trust` was added to `Gi1/0/21` in `MY-KL-HQ-CORE.cfg` regardless - not because a live bug was
 fixed (there wasn't one to fix, functionally), but because it's what real Catalyst hardware would actually
