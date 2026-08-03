@@ -7,6 +7,14 @@ API calls, so this confirms the configuration is mechanically correct for the re
 the disclosure below for exactly which ones that is.
 (Converted from the original `screenshots.docx` so it renders directly on GitHub instead of requiring a download.)
 
+**Tooling note:** every `terraform`/`aws` command below was actually run as `tflocal`/`awslocal` — the
+[`terraform-local`](https://github.com/localstack/terraform-local) wrapper CLIs LocalStack provides. They behave
+identically to `terraform`/`aws` but transparently redirect every AWS API call to LocalStack's endpoint with
+dummy credentials, entirely outside the `.tf` files themselves. That's deliberate: `../terraform/main.tf`'s AWS
+provider block has zero LocalStack-specific configuration (no custom endpoints, no dummy credentials) precisely
+so the committed Terraform stays 100% portable to real AWS - `tflocal` is what made these specific screenshots
+possible, not a change to the source code.
+
 **What was and wasn't actually applied:** LocalStack's free tier doesn't include the `elbv2`, `rds`, or `wafv2`
 services (confirmed via real `terraform apply` attempts that failed with "the \<service\> service is not included
 within your LocalStack license" — see the `PLATFORM LIMITATION` comments at the top of `alb.tf`, `rds.tf`, and

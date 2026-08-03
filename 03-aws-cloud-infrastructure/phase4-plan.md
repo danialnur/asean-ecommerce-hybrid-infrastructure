@@ -6,10 +6,17 @@ previous phase. Maps to **AWS SAA-C03** (Domains 1.0–4.0) and **Security+ SY0-
 ## Scope decision
 
 This Terraform is written as complete, correct, deployable-quality reference code — but **it is never actually
-applied**. No `terraform apply` is run against a real AWS account as part of this project; there's no live AWS
-account behind this work, and deploying it for real would incur ongoing hourly costs (NAT Gateway, RDS, EC2, ALB
-all bill by the hour regardless of traffic). This mirrors how the on-premises phases treated the AWS-facing
-placeholder interface (`203.0.113.0/24`, RFC 5737) — represented accurately, never assumed to be live.
+applied against real AWS**. No `terraform apply` is run against a real AWS account as part of this project;
+there's no live AWS account behind this work, and deploying it for real would incur ongoing hourly costs (NAT
+Gateway, RDS, EC2, ALB all bill by the hour regardless of traffic). This mirrors how the on-premises phases
+treated the AWS-facing placeholder interface (`203.0.113.0/24`, RFC 5737) — represented accurately, never assumed
+to be live.
+
+**This is mechanically verified against LocalStack, though — not just written and never run at all.** LocalStack
+(a local AWS API emulator) exercises the actual Terraform code and the AWS provider's API calls for real, which
+is meaningfully different from "never executed." See `docs/screenshots.md` for the full `plan` → `apply` → verify
+→ `destroy` cycle and evidence, including an explicit disclosure of exactly which resources LocalStack's free
+tier could and couldn't apply (`elbv2`/`rds`/`wafv2` are plan-only, gated behind LocalStack's paid tier).
 
 **A consequence of this:** the Phase 1 "Site-to-Site VPN" objective was always going to be config-only for the
 same reason — `SG-EDGE-GW` is a Packet Tracer device with a placeholder public IP that has no real internet

@@ -24,6 +24,8 @@ Reference doc for `03-aws-cloud-infrastructure/terraform/vpn-gateway.tf`. This c
 
 AWS provisions **two tunnels** per VPN connection by default (`tunnel1_address` / `tunnel2_address` in `outputs.tf`), each terminating at a different AWS public IP in different underlying infrastructure. `SG-EDGE-GW` would ordinarily be configured with two IPsec peer statements — one per tunnel — so that a failure or maintenance event on one AWS endpoint doesn't take down on-prem connectivity entirely. This mirrors the same "no single point of failure" principle already applied to the per-AZ NAT Gateways in `vpc.tf`.
 
+**That's the real AWS behavior — this project's own LocalStack evidence doesn't actually show it.** `outputs.tf` correctly requests two distinct attributes (`tunnel1_address`/`tunnel2_address`), but the LocalStack apply captured in `../docs/screenshots.md` returned the *same* IP for both. That's a LocalStack VPN-emulation limitation (confirmed by cross-checking against the raw `describe-vpn-connections` output, which does show two genuinely different tunnel addresses at the AWS-API level) — not a flaw in this Terraform. Don't treat `vpn_tunnel2_address` from a LocalStack apply as a real second-tunnel peer address; see `screenshots.md` for the full disclosure.
+
 ## IPsec parameters (what a real `SG-EDGE-GW` config would need to match)
 
 AWS's default Site-to-Site VPN uses the following IKE/IPsec parameters. A real on-prem router's `crypto isakmp policy` / `crypto ipsec transform-set` would need to match these on both tunnels for negotiation to succeed:
