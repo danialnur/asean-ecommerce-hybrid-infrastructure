@@ -6,43 +6,10 @@ built from — update this file first if the addressing scheme changes.
 
 ## Logical topology (hub-and-spoke, Malaysia HQ as hub)
 
-```text
-                                   ┌───────────────────────────────┐
-                                   │     SG-EDGE-GW           │
-                                   │     Singapore WAN Edge         │
-                                   │  Gi0/0/1 → AWS ap-southeast-1  │
-                                   │  (IPsec S2S VPN, Phase 4)      │
-                                   └───────────────┬────────────────┘
-                                                    │ Gi0/0/0
-                                                    │ 10.10.254.2/30
-                                                    │
-                                                    │ Gi1/0/24
-                                                    │ 10.10.254.1/30
-                        ┌───────────────────────────┴───────────────────────────┐
-                        │              MY-KL-HQ-CORE                       │
-                        │        Malaysia HQ — Core/Distribution (L3)           │
-                        │  VLAN10 MGMT · VLAN20 LOGISTICS_SALES                 │
-                        │  VLAN30 GUEST_WIFI · VLAN40 DMZ_SERVERS · VLAN99 NATIVE│
-                        │  HSRP active on all SVIs (priority 150)               │
-                        └───────┬───────────────────────────────────┬───────────┘
-                    Gi1/0/23    │                                   │  Gi1/0/22
-                 10.10.254.5/30 │                                   │  10.10.254.9/30
-                                │                                   │
-                    Gi0/0/1     ▼                                   ▼    Gi0/0/1
-                 10.10.254.6/30 ┌─────────────────────┐  ┌─────────────────────┐ 10.10.254.10/30
-                                │  PH-MNL-ROAS   │  │  TH-BKK-ROAS  │
-                                │  Manila ROAS router  │  │  Bangkok ROAS router│
-                                └──────────┬───────────┘  └──────────┬──────────┘
-                                Gi0/0/0 (single trunk,        Gi0/0/0 (single trunk,
-                                    802.1Q sub-ifs)               802.1Q sub-ifs)
-                                           │                          │
-                                ┌──────────▼───────────┐   ┌──────────▼──────────┐
-                                │  PH-MNL-ACC      │   │  TH-BKK-ACC    │
-                                │  Manila access switch │   │  Bangkok access sw  │
-                                │  Barcode/inventory     │   │  Barcode/inventory  │
-                                │  terminals, guest AP   │   │  terminals, guest AP│
-                                └────────────────────────┘   └──────────────────────┘
-```
+<p align="center">
+  <img src="./asean-network-topology.png" alt="AREHI-SECOPS regional on-premises topology diagram"><br>
+  <sub>Editable source: <a href="./asean-network-topology.drawio">asean-network-topology.drawio</a> (open in <a href="https://app.diagrams.net">diagrams.net</a>)</sub>
+</p>
 
 Malaysia HQ is the only site that routes locally (SVIs on the core switch,
 HSRP for gateway redundancy). Manila and Bangkok use router-on-a-stick since

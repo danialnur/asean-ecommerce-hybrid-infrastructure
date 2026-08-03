@@ -4,12 +4,13 @@ Live `show` command output and topology view from Packet Tracer, captured as evi
 configs in `../switching/` and `../router-configs/` behave as documented — not just written and assumed correct.
 (Converted from the original `screenshots.docx` so it renders directly on GitHub instead of requiring a download.)
 
-- [`phase-1-basic-connectivity/`](phase-1-basic-connectivity/) — VLANs, trunking, EtherChannel, HSRP/STP, port
-  security, SSH
+- [`phase-1-basic-connectivity/`](phase-1-basic-connectivity/) — VLANs, trunking, EtherChannel, HSRP/STP, WAN
+  uplinks, port security
 - [`phase-2-dynamic-routing-ipv6/`](phase-2-dynamic-routing-ipv6/) — OSPF adjacencies/routes, IPv4 reachability,
-  IPv6 addressing and routing
-- [`platform-limitations/`](platform-limitations/) — screenshot proof of two confirmed Packet Tracer 9.0.0
-  limitations (`show lacp` missing, `passive-interface` rejected under `ipv6 router ospf`)
+  management SSH (cross-site, genuinely depends on this phase's routing), IPv6 addressing and routing
+- [`platform-limitations/`](platform-limitations/) — screenshot proof of three confirmed Packet Tracer 9.0.0
+  limitations (`show lacp` missing, `passive-interface` rejected under `ipv6 router ospf`, `show spanning-tree
+  summary`'s per-VLAN port-state counts unreliable)
 
 Ordered start to finish, from the physical topology through to the last thing actually built and verified
 (IPv6 cross-site routing) — file numbers in `./phase-1-basic-connectivity/` and
@@ -19,11 +20,13 @@ Ordered start to finish, from the physical topology through to the last thing ac
 
 Full Packet Tracer topology view — SG-EDGE-GW (ISR4331) uplinked through MY-KL-HQ-CORE (3650-24PS) to the
 Thailand (ISR4321 ROAS + 2960-24TT access) and Philippines (ISR4321 ROAS + 2960-24TT access) branches, with
-MY-KL-HQ-DIST (3650-24PS) hanging off MY-KL-HQ-CORE as its LACP EtherChannel peer.
+MY-KL-HQ-DIST (3650-24PS) hanging off MY-KL-HQ-CORE as its LACP EtherChannel peer, and MY-KL-DMZ-SRV (Server-PT)
+on `Gi1/0/21` — recaptured after the DMZ server was added mid-Phase 3, so this reflects the full 8-device
+topology as it stands today, not the original 7-device Phase 1 snapshot.
 
 <p align="center">
   <img src="./phase-1-basic-connectivity/01-topology-overview.png" alt="Topology overview"><br>
-  <sub>Full topology view</sub>
+  <sub>Full topology view, including MY-KL-DMZ-SRV</sub>
 </p>
 
 ## VLANs
@@ -86,18 +89,21 @@ state.
 
 <p align="center">
   <img src="./phase-1-basic-connectivity/10-spanning-tree-summary-my-kl-hq-core.png" alt="MY-KL-HQ-CORE sh spanning-tree summary"><br>
-  <sub><code>MY-KL-HQ-CORE# sh spanning-tree summary</code> — rapid-PVST+, PortFast/BPDU Guard enabled</sub>
+  <sub><code>MY-KL-HQ-CORE# sh spanning-tree summary</code> — rapid-PVST+, PortFast/BPDU Guard enabled, root bridge for all 5 VLANs</sub>
 </p>
 
-**Flagging honestly rather than glossing over:** unlike the two access-switch captures below, this particular
-`MY-KL-HQ-CORE` capture shows `Root bridge for:` with nothing listed after it, and the per-VLAN table has zero
-rows with an all-zero `6 vlans` total (`0` blocking/listening/learning/forwarding/active) — even though
-`MY-KL-HQ-CORE.cfg` has `spanning-tree vlan 10,20,30,40,99 root primary` and the switch demonstrably has active
-trunk/access ports on those VLANs elsewhere in this same evidence set (`EtherChannel`, `VLANs`, `Trunking`
-sections above). The most likely explanation is this capture was taken before spanning-tree had finished
-converging on this device, not a live misconfiguration - but that's not confirmed, and as committed this specific
-screenshot doesn't actually demonstrate root-bridge status or forwarding state the way it's meant to. Worth a
-recapture to replace this screenshot with one taken after convergence.
+**Recaptured and confirmed root-bridge status is correct** (`Root bridge for: MGMT LOGISTICS_SALES GUEST_WIFI
+DMZ_SERVERS NATIVE`, matching `MY-KL-HQ-CORE.cfg`'s `spanning-tree vlan 10,20,30,40,99 root primary`) — the
+original capture's blank root-bridge line was indeed a pre-convergence artifact, not a misconfiguration.
+
+**But the per-VLAN port-state table above is confirmed unreliable on this platform**, a separate, genuine
+Packet Tracer 9.0.0 limitation. It reports `34 Blocking, 1 Forwarding, 35 STP Active` — yet `show spanning-tree`
+(the detailed, per-VLAN command, not the summary) shows every single real interface on every VLAN as `Desg/FWD`,
+zero `Blocking` anywhere: VLAN10/20/30/99 each have only `Po1` forwarding, VLAN40 has `Gi1/0/21` + `Po1` both
+forwarding. Confirmed by direct cross-check between the two commands, run back to back on the same device -
+`show spanning-tree summary`'s Blocking/Listening/Learning/Forwarding/STP-Active columns simply don't reflect
+reality here; the root-bridge line above it and the detailed `show spanning-tree` output are both trustworthy.
+See [`../platform-limitations/`](../platform-limitations/) for the confirming screenshots.
 
 `PH-MNL-ACC# sh spanning-tree summary` and `TH-BKK-ACC# sh spanning-tree summary` both show `Root bridge for:
 MGMT LOGISTICS_SALES GUEST_WIFI DMZ_SERVERS NATIVE`, i.e. each access switch is root of its *own* domain, not a
@@ -117,6 +123,18 @@ all 6 VLANs forwarding cleanly.
   <sub><code>TH-BKK-ACC# sh spanning-tree summary</code></sub>
 </p>
 
+## WAN Uplinks
+
+`packet-tracer-setup-guide.md` names this as a distinct Phase 1 "should work" checkpoint: each WAN `/30` link
+comes up and the directly-connected neighbor's WAN interface is reachable, independent of OSPF entirely (a
+directly-connected `/30` ping needs nothing beyond the interface being up with the right IP on both ends - no
+routing protocol involved). All three of `MY-KL-HQ-CORE`'s WAN uplinks, tested at once:
+
+<p align="center">
+  <img src="./phase-1-basic-connectivity/13-wan-uplinks-ping-my-kl-hq-core.png" alt="MY-KL-HQ-CORE ping to all 3 directly-connected WAN neighbors"><br>
+  <sub><code>MY-KL-HQ-CORE# ping 10.10.254.2</code> (SG-EDGE-GW) / <code>ping 10.10.254.6</code> (PH-MNL-ROAS) / <code>ping 10.10.254.10</code> (TH-BKK-ROAS) — all 100% success</sub>
+</p>
+
 ## Port Security
 
 All three captures below show `Port Status: Secure-down` and `Total MAC Addresses: 0` — these ports were never
@@ -128,26 +146,25 @@ section (`Gi1/0/3` temporarily set to `maximum 1`, a second MAC address delibera
 restrict`).
 
 <p align="center">
-  <img src="./phase-1-basic-connectivity/13-port-security-my-kl-hq-core.png" alt="MY-KL-HQ-CORE port security"><br>
+  <img src="./phase-1-basic-connectivity/14-port-security-my-kl-hq-core.png" alt="MY-KL-HQ-CORE port security"><br>
   <sub><code>MY-KL-HQ-CORE# sh port-security int g1/0/11</code></sub>
 </p>
 
 <p align="center">
-  <img src="./phase-1-basic-connectivity/14-port-security-ph-mnl-acc.png" alt="PH-MNL-ACC port security"><br>
+  <img src="./phase-1-basic-connectivity/15-port-security-ph-mnl-acc.png" alt="PH-MNL-ACC port security"><br>
   <sub><code>PH-MNL-ACC# sh port-security int fa0/1</code></sub>
 </p>
 
 <p align="center">
-  <img src="./phase-1-basic-connectivity/15-port-security-th-bkk-acc.png" alt="TH-BKK-ACC port security"><br>
+  <img src="./phase-1-basic-connectivity/16-port-security-th-bkk-acc.png" alt="TH-BKK-ACC port security"><br>
   <sub><code>TH-BKK-ACC# sh port-security int fa0/1</code></sub>
 </p>
 
-## Management SSH
-
-<p align="center">
-  <img src="./phase-1-basic-connectivity/16-ssh-th-bkk-acc-to-ph-mnl-acc.png" alt="SSH TH-BKK-ACC to PH-MNL-ACC"><br>
-  <sub><code>TH-BKK-ACC# ssh -l asean.admin 10.10.110.2</code> — cross-site SSH session, TH-BKK-ACC to PH-MNL-ACC</sub>
-</p>
+**Management SSH** has no Phase 1 evidence in this section by design, not oversight — the only SSH capture in
+this project's evidence set is a cross-site session (`TH-BKK-ACC` to `PH-MNL-ACC`), which genuinely requires
+cross-site routing that doesn't exist until Phase 2's OSPF is up (see `../topologies/packet-tracer-setup-guide.md`
+section 5's "won't work yet" list). It's filed under [Management SSH](#management-ssh) in the Phase 2 section
+below, where it actually belongs both technically and chronologically.
 
 ## OSPF Adjacencies
 
@@ -215,15 +232,27 @@ follows it.
   <sub><code>TH-BKK-ACC# ping 10.10.110.1</code> — genuinely cross-site: Bangkok's access switch reaching Manila's ROAS router, routed via OSPF through MY-KL-HQ-CORE</sub>
 </p>
 
+## Management SSH
+
+An application-layer service, not just ICMP, over that same cross-site reachability — moved here from the Phase 1
+section, since it genuinely depends on the OSPF routing established above and couldn't have worked before it
+(see `../topologies/packet-tracer-setup-guide.md` section 5's "won't work yet" list, which names exactly this
+kind of cross-site LAN access as a Phase 1 limitation).
+
+<p align="center">
+  <img src="./phase-2-dynamic-routing-ipv6/11-ssh-th-bkk-acc-to-ph-mnl-acc.png" alt="SSH TH-BKK-ACC to PH-MNL-ACC"><br>
+  <sub><code>TH-BKK-ACC# ssh -l asean.admin 10.10.110.2</code> — cross-site SSH session, TH-BKK-ACC to PH-MNL-ACC, only possible once OSPF routing was up</sub>
+</p>
+
 ## IPv6 Dual-Stack
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/11-ipv6-int-brief-ph-mnl-roas.png" alt="PH-MNL-ROAS IPv6 interfaces"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/12-ipv6-int-brief-ph-mnl-roas.png" alt="PH-MNL-ROAS IPv6 interfaces"><br>
   <sub><code>PH-MNL-ROAS# sh ipv6 int brief</code></sub>
 </p>
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/12-ipv6-int-brief-th-bkk-roas.png" alt="TH-BKK-ROAS IPv6 interfaces"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/13-ipv6-int-brief-th-bkk-roas.png" alt="TH-BKK-ROAS IPv6 interfaces"><br>
   <sub><code>TH-BKK-ROAS# sh ipv6 int brief</code></sub>
 </p>
 
@@ -232,17 +261,17 @@ follows it.
 with the HSRP screenshot above (only VLANs 10/20/30/40 have HSRP groups).
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/13-ipv6-int-brief-my-kl-hq-core-part1.png" alt="MY-KL-HQ-CORE IPv6 interfaces, part 1"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/14-ipv6-int-brief-my-kl-hq-core-part1.png" alt="MY-KL-HQ-CORE IPv6 interfaces, part 1"><br>
   <sub><code>MY-KL-HQ-CORE# sh ipv6 int brief</code> — part 1</sub>
 </p>
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/14-ipv6-int-brief-my-kl-hq-core-part2.png" alt="MY-KL-HQ-CORE IPv6 interfaces, part 2"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/15-ipv6-int-brief-my-kl-hq-core-part2.png" alt="MY-KL-HQ-CORE IPv6 interfaces, part 2"><br>
   <sub><code>MY-KL-HQ-CORE# sh ipv6 int brief</code> — part 2</sub>
 </p>
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/15-ipv6-int-brief-sg-edge-gw.png" alt="SG-EDGE-GW IPv6 interfaces"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/16-ipv6-int-brief-sg-edge-gw.png" alt="SG-EDGE-GW IPv6 interfaces"><br>
   <sub><code>SG-EDGE-GW# sh ipv6 int brief</code></sub>
 </p>
 
@@ -269,38 +298,38 @@ proven working). `MY-KL-HQ-CORE` is the hub, so it only needs one summarized rou
 route back to the hub, its only way out. See the matching `ipv6 route` comments in each device's `.cfg` file.
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/16-ipv6-route-my-kl-hq-core.png" alt="MY-KL-HQ-CORE IPv6 routing table"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/17-ipv6-route-my-kl-hq-core.png" alt="MY-KL-HQ-CORE IPv6 routing table"><br>
   <sub><code>MY-KL-HQ-CORE# sh ipv6 route</code> — two static routes, one summarized <code>/48</code> per remote site</sub>
 </p>
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/17-ipv6-route-sg-edge-gw.png" alt="SG-EDGE-GW IPv6 routing table"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/18-ipv6-route-sg-edge-gw.png" alt="SG-EDGE-GW IPv6 routing table"><br>
   <sub><code>SG-EDGE-GW# sh ipv6 route</code> — single default route back to the hub</sub>
 </p>
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/18-ipv6-route-ph-mnl-roas.png" alt="PH-MNL-ROAS IPv6 routing table"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/19-ipv6-route-ph-mnl-roas.png" alt="PH-MNL-ROAS IPv6 routing table"><br>
   <sub><code>PH-MNL-ROAS# sh ipv6 route</code> — single default route back to the hub</sub>
 </p>
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/19-ipv6-route-th-bkk-roas.png" alt="TH-BKK-ROAS IPv6 routing table"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/20-ipv6-route-th-bkk-roas.png" alt="TH-BKK-ROAS IPv6 routing table"><br>
   <sub><code>TH-BKK-ROAS# sh ipv6 route</code> — single default route back to the hub</sub>
 </p>
 
 This is the real end-to-end proof: IPv6 dual-stack now means addressing *and* routing, not just addressing.
 
 <p align="center">
-  <img src="./phase-2-dynamic-routing-ipv6/20-ping-ipv6-ph-mnl-roas-to-th-bkk-roas.png" alt="Cross-site IPv6 ping, PH-MNL-ROAS to TH-BKK-ROAS"><br>
+  <img src="./phase-2-dynamic-routing-ipv6/21-ping-ipv6-ph-mnl-roas-to-th-bkk-roas.png" alt="Cross-site IPv6 ping, PH-MNL-ROAS to TH-BKK-ROAS"><br>
   <sub><code>PH-MNL-ROAS# ping 2001:DB8:4:10:250:FFF:FEC1:DD01</code> — genuinely cross-site (Manila to Bangkok's MGMT address), 100% success</sub>
 </p>
 
 ## Confirmed Packet Tracer Limitations
 
-Everything above proves something works. These two prove the opposite — that Packet Tracer 9.0.0's simulated IOS
-itself can't do something, regardless of how correct the config is — backing up the claims already made in the
-[EtherChannel](#etherchannel) and [IPv6 Cross-Site Routing](#ipv6-cross-site-routing) sections above with actual
-screenshots instead of just prose.
+Everything above proves something works. These three prove the opposite — that Packet Tracer 9.0.0's simulated IOS
+itself can't do something (or can't report it correctly), regardless of how correct the config is — backing up the
+claims already made in the [EtherChannel](#etherchannel), [IPv6 Cross-Site Routing](#ipv6-cross-site-routing), and
+[HSRP & Spanning Tree](#hsrp--spanning-tree) sections above with actual screenshots instead of just prose.
 
 **`show lacp` does not exist on this platform.** Alphabetically, a `lacp` keyword would sit between `ipv6` and
 `license` in the command tree — it isn't there. Confirmed by paging through the complete `sh ?` output on
@@ -326,4 +355,20 @@ decision explained in the IPv6 Cross-Site Routing section above, now backed by t
 <p align="center">
   <img src="./platform-limitations/03-passive-interface-ipv6-ospf-invalid-input.png" alt="passive-interface Invalid input error under ipv6 router ospf"><br>
   <sub><code>MY-KL-HQ-CORE(config-rtr)# no passive-interface g1/0/22</code> — <code>% Invalid input detected at '^' marker</code></sub>
+</p>
+
+**`show spanning-tree summary`'s per-VLAN port-state counts don't match reality on this platform.** The summary
+table (see [HSRP & Spanning Tree](#hsrp--spanning-tree) above) reports dozens of ports `Blocking` and almost none
+`Forwarding`. The detailed `show spanning-tree` output below, captured back to back on the same device, shows the
+opposite: every real interface on every VLAN is `Desg/FWD` — zero `Blocking` anywhere. The root-bridge line and
+the detailed per-VLAN view are both trustworthy; the summary table's port-state columns are not.
+
+<p align="center">
+  <img src="./platform-limitations/04-spanning-tree-detail-vlans-all-forwarding-part1.png" alt="show spanning-tree detail, VLANs 10/20/30, all Desg/FWD"><br>
+  <sub><code>MY-KL-HQ-CORE# sh spanning-tree</code> — part 1 of 2, VLAN0010/0020/0030, every interface <code>Desg FWD</code></sub>
+</p>
+
+<p align="center">
+  <img src="./platform-limitations/05-spanning-tree-detail-vlans-all-forwarding-part2.png" alt="show spanning-tree detail, VLANs 40/99, all Desg/FWD"><br>
+  <sub><code>MY-KL-HQ-CORE# sh spanning-tree</code> — part 2 of 2, VLAN0040/0099, every interface <code>Desg FWD</code>, zero <code>Blocking</code> anywhere across all 5 VLANs</sub>
 </p>

@@ -7,9 +7,12 @@ Live `show` command output from Packet Tracer, captured as evidence that the sec
 - [`layer2-active-defense/`](layer2-active-defense/) — DHCP Snooping, Dynamic ARP Inspection
 - [`nat/`](nat/) — static NAT + PAT overload on `SG-EDGE-GW`
 - [`access-control-lists/`](access-control-lists/) — `MGMT-SSH-ONLY`, `GUEST-CONTAINMENT`, `WAN-EDGE-INBOUND`
-- [`ntp-and-snmp/`](ntp-and-snmp/) — SNMP agent status on `MY-KL-HQ-CORE`
+- [`ntp-and-snmp/`](ntp-and-snmp/) — NTP sync tested from 4 devices (hop-count-limited on this platform), SNMP
+  agent status on `MY-KL-HQ-CORE`
 - [`tftp-backup/`](tftp-backup/) — `copy running-config tftp:`, including a genuine failure and fix, not just the
   final success
+- [`dhcp-relay/`](dhcp-relay/) — real client lease through the relay, including a genuine DHCP-snooping-trust
+  failure and fix, not just the final success
 
 **Gap found and fixed while capturing this evidence:** `SG-EDGE-GW`'s live ACL set was initially missing
 `WAN-EDGE-INBOUND` entirely — that ACL is committed in `SG-EDGE-GW.cfg` (added to close the unfiltered DMZ
@@ -26,15 +29,20 @@ glossing over, both only visible on `MY-KL-HQ-CORE`'s output (the access switche
 `show ip dhcp snooping` template on their platform that doesn't include these fields at all, so there's nothing
 to cross-check against):
 - `DHCP snooping is operational on following VLANs: none` — despite `configured on following VLANs: 10,20,30,40`
-  immediately above it. "Configured" and "operational" showing different results on the same device is worth
-  investigating rather than assuming it's fine; it might be a genuine gap, or it might be another Packet Tracer
-  simulation quirk like the others already confirmed in `../../01-regional-on-premises-network/evidences/platform-limitations/`.
-  Not confirmed either way yet.
-- The "DHCP snooping trust/rate is configured on the following Interfaces" table has a header row but zero
-  interface entries under it — `MY-KL-HQ-CORE` has no explicitly trusted port for snooping. This *might* be
-  correct (its DHCP relay happens at Layer 3 via `ip helper-address` on the SVI itself, not through a locally
-  snooped Layer 2 uplink the way the access switches' relay path works), but that's a plausible explanation, not
-  a verified one - don't take it as confirmed without checking further.
+  immediately above it, and still shown as `none` even in the recaptured screenshot below. **Now confirmed
+  misleading, not a real gap:** the live DHCP relay test (see [`dhcp-relay/`](../dhcp-relay/) below) proved DHCP
+  snooping is genuinely operating on this device - it's the exact mechanism that dropped the DHCP server's
+  replies before the trust fix, and stopped dropping them after. A feature that's actively enforcing its own
+  trust boundary is by definition operational. Same lesson as `show spanning-tree summary` and `show ntp
+  status` elsewhere in this project: this specific status line just isn't reliable on this platform, verify
+  functionally instead of trusting the self-report.
+- **Resolved, and it was a real gap, not a fine-either-way design choice.** The "DHCP snooping trust/rate is
+  configured on the following Interfaces" table originally had zero entries — `MY-KL-HQ-CORE` had no explicitly
+  trusted port for snooping. The live DHCP relay test proved this was actively breaking DHCP: `MY-KL-DMZ-SRV`'s
+  replies, arriving on the untrusted `Gi1/0/21`, were being silently dropped before they could reach the relayed
+  client. Fixed with `ip dhcp snooping trust` on `Gi1/0/21` - the recaptured screenshot below now shows both
+  `Gi1/0/21` (trusted) and `Gi1/0/11` (untrusted, populated once real DHCP traffic actually crossed it during
+  testing - it wasn't listed at all before any DHCP traffic existed).
 
 The two access switches are unambiguous, by contrast: each trusts exactly its uplink toward the router that
 performs the actual relay, everything else untrusted.
@@ -142,12 +150,46 @@ topology.
 
 ## NTP & SNMP
 
-**NTP has no verification evidence here yet — an acknowledged gap, not an oversight.** `MY-KL-HQ-CORE` is
-configured `ntp master 3`, and every other device (`PH-MNL-ACC`, `TH-BKK-ACC`, `PH-MNL-ROAS`, `TH-BKK-ROAS`,
-`SG-EDGE-GW`) is configured `ntp server 10.255.255.1` pointing at it — a real, topology-wide hierarchy, not just a
-single command on one box. Despite that, nothing in this repo confirms it actually works: no `show ntp status`,
-`show ntp associations`, or `show clock detail` anywhere. Closing this needs a screenshot from one of the client
-devices showing `Clock is synchronized` (or equivalent) against `MY-KL-HQ-CORE`, taken live in Packet Tracer.
+**NTP verification, live-tested from four devices — a genuinely mixed, but now fully characterized, result.**
+`MY-KL-HQ-CORE` is configured `ntp master 3`, and every other device (`PH-MNL-ACC`, `TH-BKK-ACC`, `PH-MNL-ROAS`,
+`TH-BKK-ROAS`, `SG-EDGE-GW`) is configured `ntp server 10.255.255.1` pointing at it — a real, topology-wide
+hierarchy, not just a single command on one box.
+
+<p align="center">
+  <img src="./ntp-and-snmp/02-ntp-status-my-kl-hq-core-master.png" alt="MY-KL-HQ-CORE show ntp status, synchronized stratum 3"><br>
+  <sub><code>MY-KL-HQ-CORE# sh ntp status</code> — <code>synchronized, stratum 3, reference 127.127.1.1</code> (its own internal clock), actively updating</sub>
+</p>
+
+The master itself is healthy. What the clients revealed is a genuine, reproducible Packet Tracer 9.0.0 NTP
+limitation, confirmed from **four independent devices**, the same cross-check standard used for the OSPFv3
+finding: **devices directly (one hop) adjacent to `MY-KL-HQ-CORE` sync successfully, but only via a
+spontaneously-appearing association to the master's WAN-facing interface — never via the loopback
+(`10.255.255.1`) every device is actually configured to query, which stays at `.INIT.`/`reach 0` everywhere,
+permanently.** `SG-EDGE-GW` (one hop) reached `stratum 4` via `10.10.254.1`; `PH-MNL-ROAS` (also one hop, not
+separately screenshotted, cited here as the second confirming device) reached `stratum 4` via `10.10.254.5` -
+both are the master's directly-connected WAN interface toward that device, not the configured target.
+
+<p align="center">
+  <img src="./ntp-and-snmp/03-ntp-sg-edge-gw-1hop-synced.png" alt="SG-EDGE-GW show ntp associations and status, synced one hop away via the wrong address"><br>
+  <sub><code>SG-EDGE-GW# sh ntp status</code> / <code>sh ntp associations</code> — synced to <code>stratum 4</code>, but via <code>10.10.254.1</code> (MY-KL-HQ-CORE's WAN interface), not the configured <code>10.255.255.1</code> loopback, which stays <code>.INIT.</code>/<code>reach 0</code></sub>
+</p>
+
+**`PH-MNL-ACC`, two hops away (behind `PH-MNL-ROAS`), never syncs at all** — neither address ever gets a single
+successful poll (`reach 0` permanently, confirmed across multiple real-time rechecks, several minutes apart).
+
+<p align="center">
+  <img src="./ntp-and-snmp/04-ntp-ph-mnl-acc-2hop-unsynced.png" alt="PH-MNL-ACC show ntp status and associations, unsynchronized, reach 0 on both peers"><br>
+  <sub><code>PH-MNL-ACC# sh ntp status</code> / <code>sh ntp associations</code> — <code>unsynchronized, stratum 16</code>, <code>reach 0</code> on both the configured loopback and the WAN-interface address</sub>
+</p>
+
+One more thing worth documenting honestly rather than omitting: during this investigation, `PH-MNL-ACC#sh ntp
+status` briefly reported `Clock is synchronized, stratum 17, reference is 10.10.254.5` with `peer dispersion
+16000.00 msec` - directly contradicted by `sh ntp associations` run in the same breath, which still showed that
+exact peer at `.INIT.`/`reach 0`. Stratum 17 isn't even a valid NTP value (0-16 is the real range). An immediate
+recheck reverted to the correct `unsynchronized` state. Not caught in a screenshot (it didn't persist), but
+noted here since it's a second, independent confirmation that `show ntp status`'s own "synchronized" claim can't
+always be trusted on this platform without cross-checking `show ntp associations` - the same lesson as the
+`show spanning-tree summary` finding above.
 
 **`show snmp` (bare, no arguments) returns genuinely empty output on this platform** — not a structured
 zero-counters report the way real Cisco IOS shows, and not what was originally predicted before actually running
@@ -192,8 +234,43 @@ router's word for it:
   <sub><code>MY-KL-DMZ-SRV</code> Config → Services → TFTP file list — <code>MY-KL-HQ-CORE-confg</code> present</sub>
 </p>
 
-**Acknowledged evidence gap:** these three screenshots prove the TFTP transfer itself worked, but
-`MY-KL-HQ-CORE.cfg`'s `GigabitEthernet1/0/21` block (`switchport access vlan 40`, port-security maximum 1) was
-written to match this section's prose, not verified against a live capture of that specific interface. No
-`sh vlan brief` or `sh port-security interface Gi1/0/21` since the server was added confirms the live port
-actually matches what's now committed. Worth a quick recapture to close the loop.
+**`Gi1/0/21` config confirmed live, not just committed.** `show interfaces status` shows it `connected`, VLAN 40,
+full duplex; `show port-security interface Gi1/0/21` below shows `Port Status: Secure-up`, `Maximum MAC
+Addresses: 1`, one sticky MAC (`000D.BD68.0DE2`) actually learned from `MY-KL-DMZ-SRV`, `Violation Mode:
+Restrict`, `0` violations — matching `MY-KL-HQ-CORE.cfg`'s `GigabitEthernet1/0/21` block exactly. Unlike the
+Phase 1 Port Security evidence below (all three ports `Secure-down`, nothing ever connected), this port is
+actually up and actively protecting a real device.
+
+<p align="center">
+  <img src="./tftp-backup/04-gi1-0-21-port-security-my-kl-dmz-srv.png" alt="Gi1/0/21 port security, Secure-up, one sticky MAC learned"><br>
+  <sub><code>MY-KL-HQ-CORE# sh port-security int g1/0/21</code> — <code>Secure-up</code>, sticky MAC <code>000D.BD68.0DE2</code> on VLAN 40</sub>
+</p>
+
+## DHCP Relay
+
+`phase3-plan.md`'s "DHCP Relay scope" calls for `ip helper-address 10.10.40.10` on `Vlan20`/`Vlan30` to actually
+work, not just sit in the config. A DHCP pool (`LOGISTICS_SALES`, gateway `10.10.20.1`, range from `10.10.20.50`)
+was added to `MY-KL-DMZ-SRV`, and a temporary test PC on one of `MY-KL-HQ-CORE`'s `LOGISTICS_SALES` access ports
+requested a lease through the relay. **First attempt genuinely failed** - APIPA fallback (`169.254.x.x`),
+`DHCP Servers: 0.0.0.0` - despite the relay config, the pool, and the port/VLAN assignment all being individually
+correct. Root cause: DHCP Snooping was silently dropping `MY-KL-DMZ-SRV`'s `OFFER`/`ACK` replies, because
+`Gi1/0/21` (the port the server sits on) had never been marked as a trusted DHCP snooping port - closing the gap
+already flagged, unconfirmed, in the DHCP Snooping section above. Adding `ip dhcp snooping trust` to `Gi1/0/21`
+fixed it immediately.
+
+<p align="center">
+  <img src="./dhcp-relay/01-dhcp-relay-success-ip-configuration.png" alt="Test PC IP Configuration, DHCP request successful"><br>
+  <sub>Test PC <code>IP Configuration</code> — <code>DHCP request successful</code>, <code>10.10.20.50</code> / <code>255.255.255.0</code>, gateway <code>10.10.20.1</code></sub>
+</p>
+
+Confirmed the lease genuinely crossed the relay rather than coming from something local — `ipconfig /all` shows
+the actual answering DHCP server as `10.10.40.10`, on the other side of the relay from the client's own VLAN:
+
+<p align="center">
+  <img src="./dhcp-relay/02-dhcp-relay-success-ipconfig-all.png" alt="Test PC ipconfig /all showing DHCP Servers 10.10.40.10"><br>
+  <sub>Test PC <code>ipconfig /all</code> — <code>DHCP Servers: 10.10.40.10</code>, proving the reply actually came from <code>MY-KL-DMZ-SRV</code> across VLANs, not a local source</sub>
+</p>
+
+Same pattern as the other temporary test rigs used elsewhere in this project (`TEST-PC1`/`TEST-HUB`/`TEST-PC2` for
+`GUEST-CONTAINMENT` and the port-security violation capture) — the test PC and its access-port connection should
+be removed once this evidence is captured, not left in the permanent topology.

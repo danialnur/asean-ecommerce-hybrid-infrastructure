@@ -63,12 +63,18 @@ permitted by default — no ACL restricts it, since there's no business reason t
 a DHCP lease — **LOGISTICS_SALES (20)** and **GUEST_WIFI (30)**. `MGMT` and `DMZ_SERVERS` are infrastructure/admin
 subnets that would use static addressing in a real deployment, so no relay is configured there.
 
-**Acknowledged evidence gap:** unlike every other objective in this phase, DHCP relay has no verification
-screenshot anywhere in `evidences/` — no `show ip dhcp binding`, no client actually leasing an address through the
-relay. The config is real and genuinely applied, but closing this properly needs `MY-KL-DMZ-SRV`'s DHCP service
-enabled with a real pool plus a client PC on `LOGISTICS_SALES` or `GUEST_WIFI` actually requesting a lease -
-harder to stage live than the other objectives in this phase, which is exactly why it's called out here instead
-of left silently unverified.
+**Live-tested end-to-end, and it genuinely failed the first time — a real finding, not a formality.** A DHCP
+pool (`LOGISTICS_SALES`, gateway `10.10.20.1`, range from `10.10.20.50`) was added to `MY-KL-DMZ-SRV`, and a test
+PC on `Vlan20` requested a lease through the relay. First attempt failed outright (APIPA fallback,
+`DHCP Servers: 0.0.0.0`) despite the relay config, the pool, and the port/VLAN all being individually correct.
+Root cause: DHCP Snooping was silently dropping the server's `OFFER`/`ACK` replies, because `Gi1/0/21` (the port
+`MY-KL-DMZ-SRV` sits on) was never marked as a **trusted** DHCP snooping port - and DHCP snooping only accepts
+server-originated messages on trusted ports, dropping everything else with no log or error visible from the
+client side. Adding `ip dhcp snooping trust` to `Gi1/0/21` fixed it immediately - retried and the client leased
+`10.10.20.50` for real, with `DHCP Servers: 10.10.40.10` in its own `ipconfig /all`, proving the reply genuinely
+crossed the relay rather than coming from somewhere local. This also resolves the open question flagged in
+`evidences/README.md`'s DHCP Snooping section about whether `MY-KL-HQ-CORE` having zero trusted interfaces was a
+gap or intentional - it was a real gap. See `evidences/dhcp-relay/` for the before/after evidence.
 
 ## TFTP configuration backup — an EXEC workflow, not stored config
 
