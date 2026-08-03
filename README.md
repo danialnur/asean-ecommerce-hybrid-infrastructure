@@ -28,15 +28,21 @@ no tag is forced where it doesn't genuinely apply).
 | **2 — Dynamic Routing & IPv6** | OSPFv2 Area 0, Router ID/Loopback design, DR/BDR tuning, IPv6 dual-stack | ✅ Complete, verified against live device output |
 | **3 — Security Hardening & IP Services** | NTP, SNMP, DHCP Snooping/DAI, DHCP relay, NAT, ACLs, real PKI (OpenSSL CA), TCP/UDP packet capture | ✅ Complete, verified against live device output |
 | **4 — AWS Cloud Infrastructure** | Multi-AZ VPC, Site-to-Site IPsec VPN, ALB/ASG, RDS, WAF, Terraform | ✅ Complete, written as deployable-quality Terraform (never applied — see below) |
-| **5 — Automation & SecOps** | Netmiko/Python automation, Ansible, centralized SIEM | ✅ Complete, written as real-device-ready code (never executed live — see below) |
+| **5 — Automation & SecOps** | Netmiko/Python automation, Ansible, centralized SIEM | ✅ Complete — Netmiko/Ansible never run against a live network device (see below); the Wazuh SIEM syslog fix was live-verified end-to-end |
 
 All 5 phases are now complete. Phase 4's Terraform is intentionally never run against a real AWS account — there
 is no live account behind this project, and every hourly-billed resource in the design (NAT Gateways, RDS Multi-AZ
 replica, EC2, ALB) would accrue real ongoing cost regardless of traffic. The configuration is written to be
 complete and correct; see [`03-aws-cloud-infrastructure/phase4-plan.md`](03-aws-cloud-infrastructure/phase4-plan.md)
-for the full reasoning. Phase 5's Netmiko/Ansible code is similarly never executed live, for a different reason:
-Packet Tracer 9.0.0 has no real-NIC bridge to a live SSH target (confirmed directly, not assumed — see
-[`04-automation-and-secops/phase5-plan.md`](04-automation-and-secops/phase5-plan.md)).
+for the full reasoning. Phase 5's Netmiko/Ansible code is similarly never run against a live network device, for a
+different reason: Packet Tracer 9.0.0 has no real-NIC bridge to a live SSH target (confirmed directly, not assumed
+— see [`04-automation-and-secops/phase5-plan.md`](04-automation-and-secops/phase5-plan.md)). That's not the whole
+story for Phase 5, though: a real gap in Wazuh's default syslog configuration (no listener at all, only encrypted
+agent enrollment) was found, fixed, and live-verified end-to-end with real Docker containers — genuine UDP message
+delivery and `allowed-ips` security-scoping enforcement confirmed, not just written and assumed correct, and
+independently reproduced with firsthand screenshots (see
+[`04-automation-and-secops/evidences/`](04-automation-and-secops/evidences/) and
+[`04-automation-and-secops/logging-dashboard/evidence-syslog-listener-verified.txt`](04-automation-and-secops/logging-dashboard/evidence-syslog-listener-verified.txt)).
 
 ## What makes this different from a typical lab writeup
 
