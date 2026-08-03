@@ -14,9 +14,12 @@ placeholder interface (`203.0.113.0/24`, RFC 5737) — represented accurately, n
 **A consequence of this:** the Phase 1 "Site-to-Site VPN" objective was always going to be config-only for the
 same reason — `SG-EDGE-GW` is a Packet Tracer device with a placeholder public IP that has no real internet
 reachability, so a live IPsec tunnel to a real AWS Virtual Private Gateway was never going to actually establish
-regardless of how this phase is built. The Terraform below configures the **AWS side** of that tunnel correctly
-(Customer Gateway pointed at the placeholder IP, VPN Gateway, VPN Connection) as genuine, correct infrastructure
-code — it just can't be paired with a live negotiation partner in this lab.
+regardless of how this phase is built. Confirmed directly, not just assumed: `SG-EDGE-GW`'s `Gi0/0/1` (the
+interface carrying `203.0.113.2`) shows `down/down` in `show ip interface brief` — no physical link exists,
+discovered while root-causing why the on-prem static NAT rule's `Hits` counter stayed at 0 (see
+`../02-security-hardening/evidences/README.md`'s "NAT" section). The Terraform below configures the **AWS side**
+of that tunnel correctly (Customer Gateway pointed at the placeholder IP, VPN Gateway, VPN Connection) as
+genuine, correct infrastructure code — it just can't be paired with a live negotiation partner in this lab.
 
 ## VPC addressing plan
 

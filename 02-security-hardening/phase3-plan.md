@@ -11,12 +11,13 @@ is exactly what that VLAN's description already says it's for ("TFTP / SIEM / RA
 placeholder address with no device behind it, but the first real TFTP backup attempt against it genuinely timed
 out, so a real Packet Tracer Server device (`MY-KL-DMZ-SRV`) was added on `MY-KL-HQ-CORE`'s `Gi1/0/21` rather than
 just documenting the failure — see `evidences/README.md`'s "TFTP Configuration Backup" section for the full
-before/after evidence. It currently runs TFTP and Syslog for real; SNMP trap receipt, DHCP, and RADIUS are still
-configured as targets on the network devices but not verified against a live service on the server itself.
+before/after evidence. It currently runs TFTP, Syslog, and DHCP for real (DHCP relay live-tested end-to-end, see
+`evidences/README.md`'s "DHCP Relay" section); SNMP trap receipt and RADIUS are still configured as targets on
+the network devices but not verified against a live service on the server itself.
 
 | Service | Address | Notes |
 |---|---|---|
-| `MY-KL-DMZ-SRV` (TFTP, Syslog; DHCP/RADIUS/SNMP-trap-receiver configured as targets but not live-verified) | `10.10.40.10` | Single consolidated host — a real deployment would likely split these across dedicated hosts, but one address is enough to demonstrate every protocol correctly |
+| `MY-KL-DMZ-SRV` (TFTP, Syslog, DHCP live-verified; RADIUS/SNMP-trap-receiver configured as targets but not live-verified) | `10.10.40.10` | Single consolidated host — a real deployment would likely split these across dedicated hosts, but one address is enough to demonstrate every protocol correctly |
 | NTP source | `MY-KL-HQ-CORE` itself (`ntp master`) | No real internet-reachable NTP server exists in this lab, so Malaysia HQ is designated the authoritative internal time source, matching real practice for isolated/lab networks |
 
 ## ACL policy design

@@ -62,13 +62,29 @@ performs the actual relay, everything else untrusted.
   <sub><code>TH-BKK-ACC# sh ip dhcp snooping</code> — <code>Gi0/2</code> (uplink to <code>TH-BKK-ROAS</code>) trusted</sub>
 </p>
 
-**Dynamic ARP Inspection** — same trust pattern as DHCP Snooping (DAI relies on the DHCP Snooping binding table,
-so the trust boundaries have to match): every access port untrusted, only the uplink toward the router/core
-trusted.
+**Dynamic ARP Inspection** — the two access switches are unambiguous: each trusts exactly its uplink toward the
+router that performs the actual relay, everything else untrusted. `MY-KL-HQ-CORE` is a different story, and worth
+documenting in full rather than assuming it matches.
+
+**Found and live-tested, not assumed:** the DHCP Snooping trust fix above only added `ip dhcp snooping trust` to
+`Gi1/0/21` - `Gi1/0/21` remained untrusted for ARP inspection, and `MY-KL-DMZ-SRV` (statically addressed) has zero
+DHCP-snooping-learned bindings. On real Cisco hardware, an untrusted port with no matching binding should have its
+ARP replies dropped by DAI. Tested directly: cleared `MY-KL-HQ-CORE`'s ARP cache (`clear arp-cache`) to force a
+genuinely fresh ARP exchange with `10.10.40.10`, then pinged it. The ping succeeded 100 percent, and
+`show ip arp inspection statistics vlan 40` stayed at all zeros (`Forwarded: 0, Dropped: 0`) both before and after
+- meaning either DAI isn't actually enforcing this scenario on this platform, or its statistics simply don't
+reflect what's happening. Either way, the same class of finding as `show spanning-tree summary` and `show ntp
+status` elsewhere in this project: something that doesn't reliably report reality, confirmed by testing rather
+than assumed from the command's face value.
+
+`ip arp inspection trust` was added to `Gi1/0/21` in `MY-KL-HQ-CORE.cfg` regardless - not because a live bug was
+fixed (there wasn't one to fix, functionally), but because it's what real Catalyst hardware would actually
+require for a statically-addressed server, and it keeps this port's DHCP-snooping/ARP-inspection trust state
+consistent. Applied live and recaptured below - confirmed.
 
 <p align="center">
   <img src="./layer2-active-defense/04-arp-inspection-my-kl-hq-core.png" alt="MY-KL-HQ-CORE ARP inspection"><br>
-  <sub><code>MY-KL-HQ-CORE# sh ip arp inspection interfaces</code></sub>
+  <sub><code>MY-KL-HQ-CORE# sh ip arp inspection interfaces</code> — <code>Gi1/0/21</code> now <code>Trusted</code>, applied and confirmed live</sub>
 </p>
 
 <p align="center">
@@ -84,13 +100,26 @@ trusted.
 ## NAT
 
 **`SG-EDGE-GW`** — 1 static translation programmed (the DMZ core services host, `10.10.40.10` → `203.0.113.3`),
-`GigabitEthernet0/0/1` outside / `GigabitEthernet0/0/0` inside. `Hits: 0` is expected — this topology doesn't
-model an end-host actually generating outbound traffic through the PAT overload rule, so the counter has
-nothing to increment from yet; this confirms the rule is programmed correctly, not that it's been exercised.
+`GigabitEthernet0/0/1` outside / `GigabitEthernet0/0/0` inside.
+
+**`Hits: 0` is confirmed structurally untestable in this lab, not just untried.** Traced all the way down rather
+than assumed: pinged `203.0.113.1` (the default-route next hop) from `MY-KL-DMZ-SRV` and got `Destination host
+unreachable` from `MY-KL-HQ-CORE`'s own `Vlan40` SVI - meaning it never even forwarded the packet. Root cause
+chased through two layers: (1) `SG-EDGE-GW`'s static default route was never propagated into OSPF at all (no
+`default-information originate` anywhere in the topology, confirmed via `grep` across every `.cfg`) - added it,
+but (2) `SG-EDGE-GW`'s own `Gi0/0/1` (the interface that route depends on) shows `down/down` in
+`show ip interface brief` - the IP (`203.0.113.2`) is correctly configured, but there's no physical link. That's
+expected, not a bug: this is the same interface `../../03-aws-cloud-infrastructure/phase4-plan.md` already
+documents as having no real internet/AWS reachability - nothing was ever meant to be plugged into it. `default-
+information originate` was added to `SG-EDGE-GW.cfg`'s OSPF process anyway (correct for real hardware once a real
+uplink exists), but it can't produce a route while the interface it depends on has no link partner. Deliberately
+not working around this with a fake stand-in "ISP" device - unlike `TEST-PC1`/`TEST-DHCP-PC` (real categories of
+device that legitimately belong in this topology), a placeholder ISP router would represent nothing real, just
+manufacture a nonzero counter. `Hits: 0` is the honest, fully-diagnosed answer, not an untested gap.
 
 <p align="center">
   <img src="./nat/01-nat-statistics-sg-edge-gw.png" alt="SG-EDGE-GW NAT statistics"><br>
-  <sub><code>SG-EDGE-GW# sh ip nat statistics</code></sub>
+  <sub><code>SG-EDGE-GW# sh ip nat statistics</code> — <code>Hits: 0</code>, confirmed structural (see above), not untested</sub>
 </p>
 
 ## Access Control Lists
@@ -133,8 +162,8 @@ connected to `PH-MNL-ACC`'s real `GUEST_WIFI` access port `Fa0/21`) pinged `PH-M
 (`10.10.110.1`) — squarely inside `GUEST-CONTAINMENT`'s deny rule. The ping genuinely failed
 (`Destination host unreachable`, sourced from `10.10.112.1` — `PH-MNL-ROAS`'s own GUEST_WIFI-facing interface,
 confirming the router itself blocked it rather than a generic timeout), and the ACL's deny counter incremented
-for real: `20 deny ip 10.10.112.0 ... 10.10.110.0 ... (4 match(es))`. This is the one piece of evidence in this
-folder that proves an ACL is actively enforcing something, not just sitting correctly configured.
+for real: `20 deny ip 10.10.112.0 ... 10.10.110.0 ... (4 match(es))`. This is real, live enforcement proof, not
+just correctly-sitting configuration - `MGMT-SSH-ONLY` gets its own equally real enforcement proof below.
 `TEST-PC1`/`TEST-HUB`/`TEST-PC2` were removed afterward - temporary test scaffolding, not part of the permanent
 topology.
 
@@ -146,6 +175,22 @@ topology.
 <p align="center">
   <img src="./access-control-lists/05-access-lists-ph-mnl-roas.png" alt="PH-MNL-ROAS access lists, GUEST-CONTAINMENT with real hits"><br>
   <sub><code>PH-MNL-ROAS# sh access-lists</code> — <code>GUEST-CONTAINMENT</code> deny rule 20 shows <code>(4 match(es))</code>, genuine enforcement</sub>
+</p>
+
+**`MGMT-SSH-ONLY` — real enforcement too, not just the permit side.** Every other piece of evidence for this ACL
+only shows it *permitting* legitimate MGMT-sourced traffic (the cross-site SSH session in
+`../../01-regional-on-premises-network/evidences/`, match counts on `PH-MNL-ROAS` above) - nothing had shown it
+actually refusing an unauthorized source, since this is a standard ACL with only an *implicit* deny (no explicit
+`deny` line to attach a visible match counter to, unlike `GUEST-CONTAINMENT`). Tested behaviorally instead: a
+temporary `TEST-SSH-PC` on `MY-KL-HQ-CORE`'s `LOGISTICS_SALES` range (`10.10.20.0/24`, outside every subnet
+`MGMT-SSH-ONLY` permits) first confirmed general reachability (`ping 10.10.10.1`, 100% success - ruling out a
+generic connectivity problem), then attempted SSH to the same address and got `% Connection refused by remote
+host` - refused at the VTY `access-class` check itself, before any SSH banner or password prompt. Same temporary
+test PC pattern as `TEST-PC1` above - removed after capturing this evidence.
+
+<p align="center">
+  <img src="./access-control-lists/07-ping-and-ssh-mgmt-ssh-only-test-ssh-pc.png" alt="Ping success then SSH connection refused, MGMT-SSH-ONLY enforcement"><br>
+  <sub><code>TEST-SSH-PC# ping 10.10.10.1</code> — 100% success, then <code>ssh -l asean.admin 10.10.10.1</code> — <code>% Connection refused by remote host</code>, <code>MGMT-SSH-ONLY</code> genuinely blocking a non-MGMT source</sub>
 </p>
 
 ## NTP & SNMP
