@@ -37,7 +37,7 @@ genuine `terraform plan` → `apply` → verify → `destroy` cycle was run agai
 emulator) for the free-tier-available subset — VPC, subnets, security groups, routing, KMS/S3 logging, IAM, and
 the VPN connection itself were actually created and destroyed, not just planned. ALB, RDS, and WAF are LocalStack
 Pro-gated services, so those pieces were only ever validated with `terraform plan`; see
-[`03-aws-cloud-infrastructure/docs/screenshots.md`](03-aws-cloud-infrastructure/docs/screenshots.md) for the full
+[`03-aws-cloud-infrastructure/evidences/README.md`](03-aws-cloud-infrastructure/evidences/README.md) for the full
 disclosure of exactly what was and wasn't applied, and
 [`03-aws-cloud-infrastructure/phase4-plan.md`](03-aws-cloud-infrastructure/phase4-plan.md) for the full reasoning
 on why real AWS is never touched. Phase 5's Netmiko/Ansible code is similarly never run against a live network
@@ -86,7 +86,7 @@ written and assumed correct, and independently reproduced with firsthand screens
 ├── terraform/            # VPC, Security Groups/NACLs, ALB/ASG, RDS, WAF, KMS/S3 logging, Site-to-Site VPN
 ├── security-groups/       # Security Group / NACL rule matrix reference
 ├── vpn-gateway/           # IPsec Phase 1/2 parameter reference
-├── docs/                  # screenshots.md + screenshots/ (LocalStack apply/destroy evidence)
+├── evidences/             # README.md (LocalStack plan/apply/destroy evidence, auto-renders on GitHub) + screenshots
 └── phase4-plan.md         # Addressing plan, resource inventory, scope decision
 
 04-automation-and-secops/
@@ -103,7 +103,7 @@ written and assumed correct, and independently reproduced with firsthand screens
 - **Topology & addressing plan:** [`01-regional-on-premises-network/topologies/asean-network-topology.md`](01-regional-on-premises-network/topologies/asean-network-topology.md)
 - **Phase 1 & 2 verification evidence:** [`01-regional-on-premises-network/evidences/`](01-regional-on-premises-network/evidences/)
 - **Phase 3 (security hardening):** [`02-security-hardening/evidences/`](02-security-hardening/evidences/) (verification screenshots), [`02-security-hardening/phase3-plan.md`](02-security-hardening/phase3-plan.md)
-- **Phase 4 (AWS cloud infrastructure):** [`03-aws-cloud-infrastructure/docs/screenshots.md`](03-aws-cloud-infrastructure/docs/screenshots.md) (LocalStack apply/destroy evidence), [`03-aws-cloud-infrastructure/phase4-plan.md`](03-aws-cloud-infrastructure/phase4-plan.md)
+- **Phase 4 (AWS cloud infrastructure):** [`03-aws-cloud-infrastructure/evidences/README.md`](03-aws-cloud-infrastructure/evidences/README.md) (LocalStack apply/destroy evidence), [`03-aws-cloud-infrastructure/phase4-plan.md`](03-aws-cloud-infrastructure/phase4-plan.md)
 - **Phase 5 (automation & SecOps):** [`04-automation-and-secops/evidences/`](04-automation-and-secops/evidences/) (verification screenshots), [`04-automation-and-secops/phase5-plan.md`](04-automation-and-secops/phase5-plan.md)
 - **Packet Tracer build guide:** [`01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md`](01-regional-on-premises-network/topologies/packet-tracer-setup-guide.md)
 

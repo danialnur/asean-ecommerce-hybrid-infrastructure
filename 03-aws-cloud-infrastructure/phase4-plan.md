@@ -14,7 +14,7 @@ to be live.
 
 **This is mechanically verified against LocalStack, though — not just written and never run at all.** LocalStack
 (a local AWS API emulator) exercises the actual Terraform code and the AWS provider's API calls for real, which
-is meaningfully different from "never executed." See `docs/screenshots.md` for the full `plan` → `apply` → verify
+is meaningfully different from "never executed." See `evidences/README.md` for the full `plan` → `apply` → verify
 → `destroy` cycle and evidence, including an explicit disclosure of exactly which resources LocalStack's free
 tier could and couldn't apply (`elbv2`/`rds`/`wafv2` are plan-only, gated behind LocalStack's paid tier).
 

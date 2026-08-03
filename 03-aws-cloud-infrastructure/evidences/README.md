@@ -47,13 +47,13 @@ A later fix added one more (`aws_security_group_rule.alb_ingress_http`, opening 
 ## Plan & Apply
 
 **`terraform plan`** — 68 resources to add, full output plan (VPC, subnets, ALB, RDS, WAF, KMS, VPN, Secrets Manager)
-![terraform plan summary](screenshots/01-terraform-plan-summary.png)
+![terraform plan summary](01-terraform-plan-summary.png)
 
 **`awslocal secretsmanager delete-secret`** — clearing a previous run's RDS master-credentials secret before re-applying
-![awslocal delete-secret](screenshots/02-awslocal-delete-secret.png)
+![awslocal delete-secret](02-awslocal-delete-secret.png)
 
 **`terraform apply` complete** — 5 added, 0 changed, 1 destroyed; outputs include subnet IDs, audit log bucket, KMS key ARN, VPN tunnel addresses
-![terraform apply complete](screenshots/03-terraform-apply-complete.png)
+![terraform apply complete](03-terraform-apply-complete.png)
 
 **Known LocalStack quirk in this output:** `vpn_tunnel1_address` and `vpn_tunnel2_address` above both show the
 same IP (`52.2.144.13`). `outputs.tf` is correct — the two outputs reference `aws_vpn_connection.main.tunnel1_address`
@@ -66,38 +66,38 @@ peer address — use the `describe-vpn-connections` XML (or a real AWS apply) in
 ## Verifying Applied Resources
 
 **`awslocal ec2 describe-subnets`** — all 6 subnets (public/app/db × 2 AZs) with correct AZ and CIDR
-![awslocal describe-subnets](screenshots/04-awslocal-describe-subnets.png)
+![awslocal describe-subnets](04-awslocal-describe-subnets.png)
 
 **`awslocal ec2 describe-security-groups`** — `arehi-secops-alb-sg`: HTTPS from internet in, app tier only out
-![Security group: ALB](screenshots/05-awslocal-describe-security-groups-alb.png)
+![Security group: ALB](05-awslocal-describe-security-groups-alb.png)
 
 **`arehi-secops-app-sg`** — app traffic from ALB only in, NAT-routed internet + Postgres to DB tier out
-![Security group: app tier](screenshots/06-awslocal-describe-security-groups-app.png)
+![Security group: app tier](06-awslocal-describe-security-groups-app.png)
 
 **`arehi-secops-db-sg`** — Postgres from app tier only in, no egress
-![Security group: DB tier](screenshots/07-awslocal-describe-security-groups-db.png)
+![Security group: DB tier](07-awslocal-describe-security-groups-db.png)
 
 **`awslocal ec2 describe-vpn-connections`** — full Site-to-Site IPsec config, both tunnels, IKE/IPsec parameters
-![awslocal describe-vpn-connections](screenshots/08-awslocal-describe-vpn-connections.png)
+![awslocal describe-vpn-connections](08-awslocal-describe-vpn-connections.png)
 
 ## LocalStack Dashboard
 
 **Docker Desktop** — `localstack-main` container running
-![Docker Desktop container](screenshots/09-docker-desktop-localstack-container.png)
+![Docker Desktop container](09-docker-desktop-localstack-container.png)
 
 **Resource Browser — VPCs** — `arehi-secops` VPC (`10.200.0.0/16`) alongside the account default
-![LocalStack VPCs](screenshots/10-localstack-resource-browser-vpcs.png)
+![LocalStack VPCs](10-localstack-resource-browser-vpcs.png)
 
 **Resource Browser — Security Groups** — all 3 tier security groups present with correct descriptions
-![LocalStack security groups](screenshots/11-localstack-resource-browser-security-groups.png)
+![LocalStack security groups](11-localstack-resource-browser-security-groups.png)
 
 **Status — Services** — EC2, IAM, KMS, S3, Secrets Manager, STS all running
-![LocalStack service status](screenshots/12-localstack-status-services-running.png)
+![LocalStack service status](12-localstack-status-services-running.png)
 
 **Resource Browser — Subnets** — all 9 subnets across both AZs
-![LocalStack subnets](screenshots/13-localstack-resource-browser-subnets.png)
+![LocalStack subnets](13-localstack-resource-browser-subnets.png)
 
 ## Teardown
 
 **`terraform destroy` complete** — 53 resources destroyed, clean teardown
-![terraform destroy complete](screenshots/14-terraform-destroy-complete.png)
+![terraform destroy complete](14-terraform-destroy-complete.png)

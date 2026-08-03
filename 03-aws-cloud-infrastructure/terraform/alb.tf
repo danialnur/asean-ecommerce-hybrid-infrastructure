@@ -16,7 +16,7 @@
 # populates on a successful apply, and rds.tf documents that
 # aws_db_instance is itself paid-tier-gated on LocalStack. So these
 # two resources were never actually apply-tested end-to-end either;
-# see 03-aws-cloud-infrastructure/docs/screenshots.md for exactly
+# see 03-aws-cloud-infrastructure/evidences/README.md for exactly
 # which resources the LocalStack run did apply.
 # =============================================================
 

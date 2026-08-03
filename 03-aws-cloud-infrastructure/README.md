@@ -6,7 +6,7 @@ real AWS account (no live account, and every hourly-billed resource here would i
 → verify → `destroy` cycle was run against LocalStack (a local AWS API emulator) for the free-tier-available
 subset — VPC, subnets, security groups, routing, KMS/S3 logging, IAM, and the VPN connection itself were actually
 created and destroyed, not just planned. ALB, RDS, and WAF are LocalStack Pro-gated services, so those pieces were
-only ever validated with `terraform plan`, never applied even to LocalStack — see `docs/screenshots.md` for the
+only ever validated with `terraform plan`, never applied even to LocalStack — see `evidences/README.md` for the
 full disclosure of exactly what was and wasn't applied.
 
 ## Scope
@@ -26,5 +26,5 @@ full disclosure of exactly what was and wasn't applied.
   `logging.tf`, `vpn-gateway.tf`, `outputs.tf`
 - `security-groups/README.md` — full Security Group / NACL rule matrix with reasoning
 - `vpn-gateway/README.md` — IPsec Phase 1/2 parameter reference
-- `docs/screenshots.md` + `docs/screenshots/` — LocalStack `plan`/`apply`/`destroy` evidence
+- `evidences/README.md` + screenshots — LocalStack `plan`/`apply`/`destroy` evidence
 - `phase4-plan.md` — addressing plan, resource inventory, and the honesty note on why this is never deployed

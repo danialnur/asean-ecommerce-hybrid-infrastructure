@@ -10,12 +10,12 @@ __pycache__/
 *.pyc
 
 # Certification-guide PDFs - kept locally, not published on GitHub.
-# Phase 1/2's docs/ only ever held the PDFs (screenshots.md moved to evidences/),
-# same for Phase 3/5. Phase 4's docs/ also holds screenshots.md + screenshots/
-# (LocalStack evidence) which DO stay published, so only its PDF is excluded.
+# Every phase's docs/ only ever holds these PDFs now (screenshots.md +
+# screenshots/ moved to evidences/ in all 4 phases), so each phase's whole
+# docs/ folder is excluded.
 01-regional-on-premises-network/docs/
 02-security-hardening/docs/
-03-aws-cloud-infrastructure/docs/phase4-certification-guide.pdf
+03-aws-cloud-infrastructure/docs/
 04-automation-and-secops/docs/
 
 # Terraform - local provider cache and state (never commit state, even

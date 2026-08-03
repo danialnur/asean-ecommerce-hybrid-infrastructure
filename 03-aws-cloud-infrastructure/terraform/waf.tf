@@ -10,7 +10,7 @@
 # LocalStack license ("the wafv2 service is not included within your
 # LocalStack license"). This resource set is correct, deployable AWS
 # Terraform - verified only via `terraform plan`, not `apply`, in this
-# project's local testing. See 03-aws-cloud-infrastructure/docs/ for
+# project's local testing. See 03-aws-cloud-infrastructure/evidences/ for
 # the full LocalStack validation write-up.
 # =============================================================
 
