@@ -2,7 +2,12 @@
 
 ✅ **Complete** — written as full, deployable-quality Terraform reference code, deliberately never applied against a
 real AWS account (no live account, and every hourly-billed resource here would incur real ongoing cost — see
-`phase4-plan.md` for the full reasoning).
+`phase4-plan.md` for the full reasoning). That's not the whole story, though: a genuine `terraform plan` → `apply`
+→ verify → `destroy` cycle was run against LocalStack (a local AWS API emulator) for the free-tier-available
+subset — VPC, subnets, security groups, routing, KMS/S3 logging, IAM, and the VPN connection itself were actually
+created and destroyed, not just planned. ALB, RDS, and WAF are LocalStack Pro-gated services, so those pieces were
+only ever validated with `terraform plan`, never applied even to LocalStack — see `docs/screenshots.md` for the
+full disclosure of exactly what was and wasn't applied.
 
 ## Scope
 
