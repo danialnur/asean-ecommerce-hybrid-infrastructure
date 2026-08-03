@@ -35,9 +35,13 @@ SSH-login output collected across Phases 1–3, clearly labeled as samples rathe
 (not just planned and skipped) — see `logging-dashboard/README.md`'s "Live Deployment Attempt" section for the
 full record. It surfaced and ruled out three separate Docker Desktop/WSL2 environment quirks in turn, none of
 which reflect a problem with the Wazuh configuration itself (every cert path/filename was verified directly
-against each container's own real config). The live deployment could not be completed on that specific machine;
-the configuration is documented as correct-but-unverified-live, the same honest category as the Netmiko/Ansible
-code, just arrived at through actually trying rather than ruling it out up front.
+against each container's own real config). The full 3-service stack could not be completed on that specific
+machine, for those environment reasons — but a fourth, separate finding (the manager's default config ships with
+no syslog listener at all) was found, fixed, **and live-verified end-to-end** with a standalone container test
+(real message sent, genuinely captured; `allowed-ips` scoping confirmed to actually reject out-of-scope traffic —
+see `logging-dashboard/evidence-syslog-listener-verified.txt`). So this piece of Phase 5 isn't in the same
+"correct-but-unverified-live" category as the Netmiko/Ansible code below — it's actually been run and proven to
+work, just not yet as part of the complete stack.
 
 ## Why Wazuh
 

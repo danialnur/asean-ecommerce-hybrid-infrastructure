@@ -1,18 +1,24 @@
 # Single-node Wazuh SIEM stack - indexer (OpenSearch-based storage/search),
 # manager (log collection, rule correlation, alerting), and dashboard
-# (Kibana-based UI). This configuration is confirmed CORRECT - the cert
-# paths/filenames below were verified by reading each container's own
-# real default config (opensearch.yml, opensearch_dashboards.yml, and
-# filebeat.yml), not guessed - but a live end-to-end deployment could not
-# be completed on this development machine. See "Live Deployment Attempt"
-# in ../README.md for the full troubleshooting record: three separate
-# Docker Desktop/WSL2 environment quirks were hit and ruled out in turn
-# (a Java SecurityManager FilePermission denial specific to Windows-path
-# bind mounts, WSL Docker integration being disabled, and a persistent
-# WSL2 bind-mount bug where top-level files - but not subdirectories -
-# don't appear inside a mounted directory, which survived a full WSL
-# shutdown/restart). None of these reflect a problem with this compose
-# file or the Wazuh setup itself.
+# (Kibana-based UI). The cert paths/filenames below were verified by
+# reading each container's own real default config (opensearch.yml,
+# opensearch_dashboards.yml, and filebeat.yml), not guessed - but a live
+# end-to-end deployment could not be completed on this development
+# machine. See "Live Deployment Attempt" in ../README.md for the full
+# troubleshooting record: three separate Docker Desktop/WSL2 environment
+# quirks were hit and ruled out in turn (a Java SecurityManager
+# FilePermission denial specific to Windows-path bind mounts, WSL Docker
+# integration being disabled, and a persistent WSL2 bind-mount bug where
+# top-level files - but not subdirectories - don't appear inside a
+# mounted directory, which survived a full WSL shutdown/restart). None of
+# these reflect a problem with this compose file or the Wazuh setup
+# itself.
+#
+# One thing that WAS a real gap, found after the fact by dumping the
+# manager image's own default ossec.conf directly (not assumed): the
+# stock config has no syslog listener at all, only an agent-enrollment
+# one - see the ports/volumes comments on wazuh.manager below for the fix
+# (./config/ossec.conf, adding a genuine syslog remote block).
 #
 # Prerequisite (one-time): generate TLS certs via the official
 # wazuh-certs-generator container before first start:
@@ -57,8 +63,27 @@ services:
     ports:
       # 514/udp is where syslog-forwarding devices (or, in this project's
       # case, the sample log files replayed via `logger`/netcat) would
-      # send to, if this were ever run for real
-      - "1514:1514/udp"
+      # send to, if this were ever run for real. Confirmed by dumping the
+      # image's own default ossec.conf (docker run --rm --entrypoint cat
+      # wazuh/wazuh-manager:4.9.0 /var/ossec/data_tmp/permanent/var/ossec/etc/ossec.conf)
+      # that the DEFAULT config has no syslog listener at all - only
+      # <connection>secure</connection> on 1514/tcp, Wazuh's encrypted
+      # agent-enrollment protocol, not plain syslog. This project's whole
+      # premise (real Cisco `logging host` syslog) would never have worked
+      # against the stock default, a separate issue from the Docker
+      # Desktop/WSL2 problems that blocked the live deployment attempt (see
+      # ../README.md). Fixed with the custom ./config/ossec.conf mounted
+      # below, which adds a genuine <connection>syslog</connection>
+      # listener on 514/udp - live-verified end-to-end with a standalone
+      # container test (real message sent, genuinely captured in
+      # archives.log; see ../evidence-syslog-listener-verified.txt for the
+      # full transcript, including confirming the allowed-ips scoping
+      # actually rejects out-of-scope traffic). 1514/tcp (agent) and 1515
+      # (enrollment) are kept mapped too, matching the image's unmodified
+      # defaults, in case a real Wazuh agent is ever added to this project
+      # later.
+      - "514:514/udp"
+      - "1514:1514"
       - "1515:1515"
       - "55000:55000"
     environment:
@@ -74,6 +99,22 @@ services:
     volumes:
       - wazuh-manager-data:/var/ossec/data
       - ./sample-logs:/var/ossec/sample-logs:ro
+      # Custom ossec.conf replacing the image's default - see the ports
+      # comment above for why this is necessary, not optional. Mounted at
+      # /wazuh-config-mount/etc/, NOT directly at /var/ossec/etc/ossec.conf
+      # - confirmed live that a direct single-file bind mount fails
+      # ("sed: cannot rename ... Device or resource busy"), because
+      # Wazuh's own /etc/cont-init.d/0-wazuh-init script edits ossec.conf
+      # in place at startup (node_name/cluster_key substitution), which a
+      # bind-mounted single file can't survive - a general Docker
+      # limitation, not a Windows/WSL2 one. /wazuh-config-mount/ is
+      # Wazuh's own documented mechanism for this exact case: the init
+      # script COPIES files from here into place instead of relying on a
+      # bind mount, so the in-place sed edits work normally afterward. This
+      # file carries the COMPLETE original default content plus the one
+      # added <remote connection="syslog"> block, not a diff (mount_files()
+      # copies whole files, not merges them).
+      - ./config/ossec.conf:/wazuh-config-mount/etc/ossec.conf:ro
       # No cert files mounted here - confirmed by reading the container's
       # own default filebeat.yml, which ships with
       # `ssl.verification_mode: none` and every ssl.certificate*/ssl.key

@@ -5,6 +5,10 @@ Thumbs.db
 *~
 .vscode/
 
+# Python bytecode cache
+__pycache__/
+*.pyc
+
 # Certification-guide PDFs - kept locally, not published on GitHub.
 # Phase 1/2's docs/ only ever held the PDFs (screenshots.md moved to evidences/),
 # same for Phase 3/5. Phase 4's docs/ also holds screenshots.md + screenshots/

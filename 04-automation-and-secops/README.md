@@ -10,7 +10,12 @@ as proof. `ansible-playbooks/deploy_vlan_acl.yml` was installed and syntax-check
 mechanically valid, including the full inventory resolving all 6 devices correctly, even though it was never
 applied to a live device. A live Wazuh deployment was also genuinely attempted (not just planned) — see
 `logging-dashboard/README.md`'s "Live Deployment Attempt" for the honest record of the 3 Docker Desktop/WSL2
-environment quirks that blocked it.
+environment quirks that blocked the full stack, and a 4th, unrelated finding: the manager's own default
+config ships with no syslog listener at all (only encrypted agent enrollment). Found, fixed, and live-verified
+end-to-end with a standalone container test — a real test message was sent and genuinely captured, and the
+`allowed-ips` scoping was confirmed to actually reject out-of-scope traffic — independent of whether the full
+3-service stack ever comes up on this machine. Full transcript in
+`logging-dashboard/evidence-syslog-listener-verified.txt`.
 
 ## Scope
 
@@ -28,4 +33,6 @@ environment quirks that blocked it.
   `device_inventory.json`), `devices.py`, `requirements.txt`
 - `ansible-playbooks/` — `inventory.ini`, `deploy_vlan_acl.yml`, `ansible.cfg`
 - `logging-dashboard/` — `docker-compose.yml`, `sample-logs/`, `README.md`
+- `evidences/` — real terminal screenshots proving `device_inventory.py`'s run and Ansible's install/syntax-check/
+  inventory-resolution, personally captured rather than only documented (growing — see the folder's own README)
 - `phase5-plan.md` — scope decision (including the PT-Cloud bridge finding), resource inventory, cert mapping

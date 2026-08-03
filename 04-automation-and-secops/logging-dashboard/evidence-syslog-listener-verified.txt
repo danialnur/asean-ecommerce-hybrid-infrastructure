@@ -1,0 +1,110 @@
+Wazuh manager syslog listener - live verification transcript
+================================================================
+Captured 2026-08-03. Standalone `docker run` tests against
+wazuh/wazuh-manager:4.9.0 directly (no full stack, no certs needed) -
+see logging-dashboard/README.md's "Live Deployment Attempt" item 4 for
+the full narrative. Raw commands and real output, not paraphrased.
+
+------------------------------------------------------------------
+1. CONFIRMED: the image's own default ossec.conf has NO syslog listener
+------------------------------------------------------------------
+$ docker run --rm --entrypoint cat wazuh/wazuh-manager:4.9.0 \
+    /var/ossec/data_tmp/permanent/var/ossec/etc/ossec.conf
+  ...
+  <remote>
+    <connection>secure</connection>
+    <port>1514</port>
+    <protocol>tcp</protocol>
+    <queue_size>131072</queue_size>
+  </remote>
+  ...
+-> Only one <remote> block, connection=secure (encrypted agent
+   enrollment), 1514/tcp. No syslog listener anywhere in the default.
+
+------------------------------------------------------------------
+2. Single-file bind mount fails - Wazuh's own init script edits the
+   file in place, which a bind-mounted single file can't survive
+------------------------------------------------------------------
+$ docker run --rm -d -v ".../config/ossec.conf:/var/ossec/etc/ossec.conf" \
+    wazuh/wazuh-manager:4.9.0
+...
+sed: cannot rename /var/ossec/etc/sed8mn2oB: Device or resource busy
+...
+wazuh-analysisd: CRITICAL: (1202): Configuration error at 'etc/ossec.conf'.
+wazuh-analysisd: Configuration error. Exiting
+-> Same failure whether the mount was :ro or writable - a general
+   Docker single-file-bind-mount limitation (rename-based in-place
+   edits can't target a bind-mounted inode), not a permissions issue.
+
+------------------------------------------------------------------
+3. Fix: found and used Wazuh's own documented mount point
+------------------------------------------------------------------
+Read /etc/cont-init.d/0-wazuh-init directly inside the image:
+  WAZUH_CONFIG_MOUNT=/wazuh-config-mount
+  mount_files() {
+    if [ -e "$WAZUH_CONFIG_MOUNT" ]; then
+      cp --verbose -r $WAZUH_CONFIG_MOUNT/* $WAZUH_INSTALL_PATH
+    fi
+  }
+-> Mount custom files into /wazuh-config-mount/etc/... instead; the
+   container COPIES them into place (not a bind-mount replace), so the
+   result is a normal writable file the init script's sed edits work on.
+
+$ docker run --rm -d \
+    -v ".../config/ossec.conf:/wazuh-config-mount/etc/ossec.conf:ro" \
+    wazuh/wazuh-manager:4.9.0
+-> No config errors. wazuh-remoted starts successfully.
+
+------------------------------------------------------------------
+4. Confirmed the syslog listener is genuinely up (with our fix's
+   <remote connection="syslog"> block added)
+------------------------------------------------------------------
+$ docker exec <container> grep -i remoted /var/ossec/logs/ossec.log
+wazuh-remoted: INFO: Remote syslog allowed from: '0.0.0.0/0'
+wazuh-remoted: INFO: Started (pid: 601). Listening on port 1514/TCP (secure).
+wazuh-remoted: INFO: Started (pid: 602). Listening on port 514/UDP (syslog).
+-> Two SEPARATE remoted processes, confirming the syslog listener is a
+   real, distinct process from the pre-existing agent listener.
+
+$ docker exec <container> cat /proc/net/udp
+   sl  local_address rem_address   st ...
+ 3257: 00000000:0202 00000000:0000 07 ...
+-> 0202 hex = 514 decimal, bound on 0.0.0.0 (all interfaces).
+
+------------------------------------------------------------------
+5. End-to-end delivery confirmed with a real test message matching
+   this project's actual ACL log format
+------------------------------------------------------------------
+Test message sent (UDP, port 514, from inside the container):
+  <189>Aug 03 2026 12:55:00 MY-KL-HQ-CORE: %SEC-6-IPACCESSLOGP: list
+  GUEST-CONTAINMENT denied tcp 10.10.30.88(51022) -> 10.10.40.10(69), 1 packet
+
+$ docker exec <container> grep GUEST-CONTAINMENT /var/ossec/logs/archives/archives.log
+2026 Aug 03 13:03:09 <container-id>->127.0.0.1 Aug 03 2026 12:55:00
+MY-KL-HQ-CORE: %SEC-6-IPACCESSLOGP: list GUEST-CONTAINMENT denied tcp
+10.10.30.88(51022) -> 10.10.40.10(69), 1 packet
+-> The exact message sent, genuinely captured by Wazuh, end to end.
+   (This test used a temporarily widened allowed-ips=0.0.0.0/0 copy of
+   the config, since the real committed config's allowed-ips=10.10.0.0/16
+   correctly does NOT include 127.0.0.1 - see next section.)
+
+------------------------------------------------------------------
+6. Confirmed the real committed config's allowed-ips scoping actually
+   works - it rejects out-of-scope traffic, not silently permits it
+------------------------------------------------------------------
+Same test message, same steps, but against the real committed
+config/ossec.conf (allowed-ips=10.10.0.0/16, not widened):
+  archives.log: no match for GUEST-CONTAINMENT after sending from 127.0.0.1
+-> 127.0.0.1 is outside 10.10.0.0/16, so the message was correctly
+   dropped. Confirms the security scoping is genuinely restrictive, not
+   just written and assumed to be - a real device on this project's
+   actual 10.10.0.0/16 address space (e.g. MY-KL-HQ-CORE, 10.10.10.2)
+   would be accepted; an arbitrary external source would not.
+
+================================================================
+Conclusion: the syslog gap (image default has none) is real, confirmed,
+and fixed. The fix (config/ossec.conf's added <remote connection="syslog">
+block, mounted via /wazuh-config-mount/) is confirmed working end-to-end
+against the actual wazuh-manager:4.9.0 image, including the security
+scoping behaving correctly. This closes the loop on the finding
+documented in README.md's "Live Deployment Attempt" section, item 4.

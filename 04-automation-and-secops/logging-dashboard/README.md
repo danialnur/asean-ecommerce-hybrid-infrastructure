@@ -24,7 +24,8 @@ produce if it could forward logs for real. Each sample file's header comment sta
 `docker-compose.yml` deploys Wazuh's standard 3-service single-node architecture:
 
 - **wazuh.indexer** — OpenSearch-based storage and search backend for every ingested log/alert
-- **wazuh.manager** — receives logs (port `1514/udp` for syslog), runs them against Wazuh's decoder/rule engine, generates alerts
+- **wazuh.manager** — receives logs (port `514/udp` for syslog — see below, this wasn't the manager's default and
+  had to be added explicitly), runs them against Wazuh's decoder/rule engine, generates alerts
 - **wazuh.dashboard** — Kibana-based web UI for browsing alerts, building dashboards, and managing rules
 
 Before a real run, Wazuh's official cert-generation step (`wazuh-certs-generator`) must populate `config/certs/`
@@ -56,13 +57,37 @@ quirks on that specific machine, each ruled out in turn:
    freshly-created test file) never appeared inside the container at all — not a permission denial, just silent
    absence. This persisted identically across a container retry, a fresh login, and a full `wsl --shutdown` +
    restart, ruling out simple caching/timing as the cause.
+4. **No syslog listener in the manager's default config — found, fixed, AND live-verified end-to-end,
+   independent of the three environment issues above.** Cert-mounting was never the only unverified assumption:
+   dumping the `wazuh-manager` image's own shipped `ossec.conf` directly (`docker run --rm --entrypoint cat
+   wazuh/wazuh-manager:4.9.0 /var/ossec/data_tmp/permanent/var/ossec/etc/ossec.conf` — a throwaway container, no
+   certs or indexer needed, so it worked even without the full stack running) showed the *only* `<remote>` block
+   is `<connection>secure</connection>` on `1514/tcp` — Wazuh's encrypted agent-enrollment protocol, not plain
+   syslog. There was no `<connection>syslog</connection>` block anywhere in the default, and `docker-compose.yml`
+   had been mapping `1514/udp` (protocol mismatch with the default's `tcp`, and the wrong port/type entirely).
+   Fixed with `config/ossec.conf` (the full original default plus one added `<remote connection="syslog">` block
+   on `514/udp`, scoped to `10.10.0.0/16`) — but bind-mounting it directly over `/var/ossec/etc/ossec.conf` also
+   failed (`sed: cannot rename ... Device or resource busy` — Wazuh's own init script edits that file in place,
+   which a single-file bind mount can't survive, a general Docker limitation independent of Windows/WSL2).
+   Fixed properly by finding and using Wazuh's own documented mechanism instead (`/etc/cont-init.d/0-wazuh-init`
+   reads mounted files from `/wazuh-config-mount/` and *copies* them into place, sidestepping the bind-mount
+   rename issue entirely). With that, `wazuh-remoted` logs confirmed two independent listeners starting
+   (`Listening on port 1514/TCP (secure)` and `Listening on port 514/UDP (syslog)`), `/proc/net/udp` confirmed
+   the socket bound, and a real test message in this project's actual ACL-log format was sent and genuinely
+   captured in `archives.log` — full end-to-end proof, not just a config that should work. The scoped
+   `allowed-ips=10.10.0.0/16` was also confirmed to actually reject out-of-scope traffic (a widened
+   `0.0.0.0/0` test copy accepted the same message; the real config didn't), proving the restriction is
+   genuinely enforced, not just written. Full transcript: `evidence-syslog-listener-verified.txt`.
 
-**Conclusion:** the Wazuh configuration in `docker-compose.yml` is confirmed correct in principle — every cert
-path and filename was verified against each container's own real, running configuration, not assumed. What
-couldn't be completed is a live end-to-end deployment *on this specific machine*, due to environment-level
-Docker Desktop/WSL2 behavior outside this project's control. This is documented honestly rather than silently
-left as "should work" — the same treatment given to every other platform limitation in this project (Packet
-Tracer's SNMPv3/spanning-tree/SVI-ACL gaps, LocalStack's Pro-tier service gating).
+**Conclusion:** the Wazuh configuration in `docker-compose.yml` is confirmed correct — every cert path/filename
+and the manager's actual listening configuration were verified against each container's own real, running (or
+dumped) configuration, not assumed; the syslog gap above is fixed and live-verified, not just documented as a
+limitation. What still couldn't be completed is a live end-to-end deployment of the *full 3-service stack* on
+this specific machine, due to the three environment-level Docker Desktop/WSL2 issues above, which are outside
+this project's control — the manager's own syslog ingestion, tested standalone, is now proven to work correctly
+independent of that. This is documented honestly rather than silently left as "should work" — the same treatment
+given to every other platform limitation
+in this project (Packet Tracer's SNMPv3/spanning-tree/SVI-ACL gaps, LocalStack's Pro-tier service gating).
 
 ## ⚠️ Important — `config/certs/` contains real generated keys, lab-only
 
@@ -75,14 +100,15 @@ before being committed, and there is no live Wazuh instance anywhere trusting th
 
 ## How the sample logs would be ingested (if ever run for real)
 
-Wazuh's manager listens for syslog on UDP 1514. The sample log files are mounted read-only into the manager
-container at `/var/ossec/sample-logs/`; replaying them would use the standard Linux `logger` utility to send each
-line as a real syslog message to the manager:
+Wazuh's manager listens for syslog on UDP 514, via the `<remote connection="syslog">` block added in
+`config/ossec.conf` (the image's default has no syslog listener at all — see "Live Deployment Attempt" above).
+The sample log files are mounted read-only into the manager container at `/var/ossec/sample-logs/`; replaying
+them would use the standard Linux `logger` utility to send each line as a real syslog message to the manager:
 
 ```bash
 # From inside (or with network access to) the wazuh.manager container:
 while IFS= read -r line; do
-  logger -n 127.0.0.1 -P 1514 -d "$line"
+  logger -n 127.0.0.1 -P 514 -d "$line"
 done < /var/ossec/sample-logs/ssh-auth.log
 ```
 
